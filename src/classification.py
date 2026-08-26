@@ -1,38 +1,62 @@
 """
 Module classification.py
 -------------------------
-Xây dựng, tối ưu hóa (GridSearchCV) và dự đoán các mô hình phân lớp 
-(Logistic Regression và Random Forest) cho bài toán Telco Customer Churn.
+Xây dựng, tối ưu hóa siêu tham số (GridSearchCV) và dự đoán nhãn phân lớp 
+sử dụng Hồi quy Logic (Logistic Regression) và Hồi quy Tuyến tính (Linear Regression).
 """
 
 from typing import Any, Dict
+import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
+from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 
 from src.preprocessor import build_classification_preprocessor
 
 
+class LinearRegressionClassifier(BaseEstimator, ClassifierMixin):
+    """
+    Wrapper chuyển đổi mô hình Hồi quy Tuyến tính (Linear Regression) 
+    thành Mô hình Phân lớp Nhị phân dựa trên ngưỡng xác suất (Threshold = 0.5).
+    """
+
+    def __init__(self, threshold: float = 0.5, fit_intercept: bool = True):
+        self.threshold = threshold
+        self.fit_intercept = fit_intercept
+        self.model = LinearRegression(fit_intercept=self.fit_intercept)
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        self.model.fit(X, y)
+        self.classes_ = np.unique(y)
+        return self
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        raw_preds = self.model.predict(X)
+        return (raw_preds >= self.threshold).astype(int)
+
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
+        raw_preds = self.model.predict(X)
+        # Clip giá trị nằm trong khoảng [0, 1] để giả định làm xác suất
+        probs_class_1 = np.clip(raw_preds, 0, 1)
+        probs_class_0 = 1.0 - probs_class_1
+        return np.column_stack((probs_class_0, probs_class_1))
+
+
 def build_classification_pipelines(X: pd.DataFrame) -> Dict[str, Pipeline]:
     """
-    Tạo dictionary chứa các Pipeline chưa fit cho Logistic Regression và Random Forest.
-    Cả hai mô hình đều bắt buộc thiết lập class_weight="balanced".
+    Tạo dictionary chứa các Pipeline chưa fit cho Logistic Regression và Linear Regression Classifier.
 
     Args:
-        X (pd.DataFrame): Tập đặc trưng đầu vào (chưa qua transform) để xây dựng preprocessor.
+        X (pd.DataFrame): Tập đặc trưng đầu vào để xây dựng preprocessor.
 
     Returns:
-        Dict[str, Pipeline]: Dictionary chứa các Pipeline dạng:
-            {
-                "logistic_regression": Pipeline(...),
-                "random_forest": Pipeline(...)
-            }
+        Dict[str, Pipeline]: Dictionary chứa các Pipeline chưa được huấn luyện.
     """
     preprocessor = build_classification_preprocessor(X)
 
-    # 1. Pipeline Logistic Regression
+    # 1. Pipeline Hồi quy Logic (Logistic Regression)
     lr_pipeline = Pipeline(
         steps=[
             ("preprocessor", preprocessor),
@@ -45,22 +69,17 @@ def build_classification_pipelines(X: pd.DataFrame) -> Dict[str, Pipeline]:
         ]
     )
 
-    # 2. Pipeline Random Forest
-    rf_pipeline = Pipeline(
+    # 2. Pipeline Hồi quy Tuyến tính (Linear Regression Classifier)
+    lin_pipeline = Pipeline(
         steps=[
             ("preprocessor", preprocessor),
-            (
-                "classifier",
-                RandomForestClassifier(
-                    class_weight="balanced", random_state=42
-                ),
-            ),
+            ("classifier", LinearRegressionClassifier()),
         ]
     )
 
     return {
         "logistic_regression": lr_pipeline,
-        "random_forest": rf_pipeline,
+        "linear_regression": lin_pipeline,
     }
 
 
@@ -71,48 +90,36 @@ def tune_classifiers(
     random_state: int = 42,
 ) -> Dict[str, Dict[str, Any]]:
     """
-    Thực hiện GridSearchCV trên tập X_train, y_train để tối ưu tham số cho từng model.
-    Không nhìn thấy tập test (X_test / y_test) để tránh Data Leakage.
+    Tìm tham số tối ưu nhất cho Hồi quy Logic và Hồi quy Tuyến tính thông qua GridSearchCV.
+    Được fit hoàn toàn trên tập Train để tránh rò rỉ dữ liệu (Data Leakage).
 
     Args:
         X_train (pd.DataFrame): Tập đặc trưng huấn luyện.
-        y_train (pd.Series): Nhãn mục tiêu huấn luyện (0 và 1).
-        cv (int, optional): Số fold Cross-Validation. Mặc định là 5.
-        random_state (int, optional): Random seed phục vụ tái tạo kết quả. Mặc định là 42.
+        y_train (pd.Series): Nhãn mục tiêu huấn luyện.
+        cv (int): Số lượng fold Cross-Validation.
+        random_state (int): Random seed phục vụ tái tạo kết quả.
 
     Returns:
-        Dict[str, Dict[str, Any]]: Dictionary lưu trữ kết quả tinh chỉnh cho từng model:
-            {
-                "logistic_regression": {
-                    "estimator": Pipeline (đã fit tốt nhất),
-                    "best_params": dict,
-                    "cv_score": float (F1-score trung bình trên CV)
-                },
-                "random_forest": {
-                    "estimator": Pipeline (đã fit tốt nhất),
-                    "best_params": dict,
-                    "cv_score": float (F1-score trung bình trên CV)
-                }
-            }
+        Dict[str, Dict[str, Any]]: Báo cáo chứa best_estimator_, best_params_ và cv_score.
     """
     pipelines = build_classification_pipelines(X_train)
 
-    # Lưới tham số tìm kiếm cho Logistic Regression
+    # Lưới tham số tối ưu cho Hồi quy Logic
     param_grid_lr = {
-        "classifier__C": [0.01, 0.1, 1.0, 10.0],
+        "classifier__C": [0.001, 0.01, 0.1, 1.0, 10.0, 100.0],
         "classifier__solver": ["lbfgs", "liblinear"],
+        "classifier__penalty": ["l2"],
     }
 
-    # Lưới tham số tìm kiếm cho Random Forest
-    param_grid_rf = {
-        "classifier__n_estimators": [50, 100, 200],
-        "classifier__max_depth": [5, 10, 15, None],
-        "classifier__min_samples_split": [2, 5],
+    # Lưới tham số tối ưu cho Hồi quy Tuyến tính
+    param_grid_lin = {
+        "classifier__threshold": [0.3, 0.4, 0.5, 0.6],
+        "classifier__fit_intercept": [True, False],
     }
 
     param_grids = {
         "logistic_regression": param_grid_lr,
-        "random_forest": param_grid_rf,
+        "linear_regression": param_grid_lin,
     }
 
     tuned_results: Dict[str, Dict[str, Any]] = {}
@@ -122,7 +129,7 @@ def tune_classifiers(
             estimator=pipeline,
             param_grid=param_grids[model_name],
             cv=cv,
-            scoring="f1",  # Tối ưu hóa F1-score do dữ liệu mất cân bằng
+            scoring="f1",
             n_jobs=-1,
         )
 
@@ -141,30 +148,26 @@ def predict_classifiers(
     fitted_models: Dict[str, Any], X_test: pd.DataFrame
 ) -> Dict[str, pd.Series]:
     """
-    Tạo nhãn dự đoán 0/1 trên tập X_test bằng các mô hình đã fit tốt nhất.
+    Tạo dự đoán nhãn 0/1 trên tập kiểm thử X_test cho các mô hình đã tối ưu tham số.
 
     Args:
-        fitted_models (Dict[str, Any]): Dictionary chứa kết quả từ `tune_classifiers` 
-                                       hoặc trực tiếp chứa các pipeline đã fit.
+        fitted_models (Dict[str, Any]): Dictionary chứa kết quả từ tune_classifiers.
         X_test (pd.DataFrame): Tập đặc trưng kiểm thử.
 
     Returns:
-        Dict[str, pd.Series]: Dictionary chứa nhãn dự đoán dạng pd.Series giữ nguyên index của X_test:
-            {
-                "logistic_regression": pd.Series([0, 1, 0, ...], index=X_test.index),
-                "random_forest": pd.Series([0, 1, 1, ...], index=X_test.index)
-            }
+        Dict[str, pd.Series]: Nhãn dự đoán tương ứng với index của X_test.
     """
     predictions: Dict[str, pd.Series] = {}
 
     for model_name, model_info in fitted_models.items():
-        # Xử lý trường hợp đầu vào là dict trả về từ tune_classifiers hoặc trực tiếp là Pipeline
         if isinstance(model_info, dict) and "estimator" in model_info:
             estimator = model_info["estimator"]
         else:
             estimator = model_info
 
         y_pred = estimator.predict(X_test)
-        predictions[model_name] = pd.Series(y_pred, index=X_test.index, name=model_name)
+        predictions[model_name] = pd.Series(
+            y_pred, index=X_test.index, name=model_name
+        )
 
     return predictions
