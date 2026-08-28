@@ -1,62 +1,37 @@
-han"""
-Module classification.py
--------------------------
-Xây dựng, tối ưu hóa siêu tham số (GridSearchCV) và dự đoán nhãn phân lớp 
-sử dụng Hồi quy Logic (Logistic Regression) và Hồi quy Tuyến tính (Linear Regression).
+
+"""Module classification.py.
+
+Xây dựng, tối ưu hóa siêu tham số (GridSearchCV) và dự đoán nhãn phân lớp
+cho 2 mô hình: Logistic Regression và Random Forest Classifier.
+
 """
 
 from typing import Any, Dict
-import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 
 from src.preprocessor import build_classification_preprocessor
 
 
-class LinearRegressionClassifier(BaseEstimator, ClassifierMixin):
-    """
-    Wrapper chuyển đổi mô hình Hồi quy Tuyến tính (Linear Regression) 
-    thành Mô hình Phân lớp Nhị phân dựa trên ngưỡng xác suất (Threshold = 0.5).
-    """
-
-    def __init__(self, threshold: float = 0.5, fit_intercept: bool = True):
-        self.threshold = threshold
-        self.fit_intercept = fit_intercept
-        self.model = LinearRegression(fit_intercept=self.fit_intercept)
-
-    def fit(self, X: pd.DataFrame, y: pd.Series):
-        self.model.fit(X, y)
-        self.classes_ = np.unique(y)
-        return self
-
-    def predict(self, X: pd.DataFrame) -> np.ndarray:
-        raw_preds = self.model.predict(X)
-        return (raw_preds >= self.threshold).astype(int)
-
-    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
-        raw_preds = self.model.predict(X)
-        # Clip giá trị nằm trong khoảng [0, 1] để giả định làm xác suất
-        probs_class_1 = np.clip(raw_preds, 0, 1)
-        probs_class_0 = 1.0 - probs_class_1
-        return np.column_stack((probs_class_0, probs_class_1))
-
-
 def build_classification_pipelines(X: pd.DataFrame) -> Dict[str, Pipeline]:
-    """
-    Tạo dictionary chứa các Pipeline chưa fit cho Logistic Regression và Linear Regression Classifier.
+    """Tạo dictionary chứa các Pipeline chưa fit cho Logistic Regression và
+
+    Random Forest.
+
+    Cả hai mô hình đều bắt buộc thiết lập class_weight="balanced".
 
     Args:
         X (pd.DataFrame): Tập đặc trưng đầu vào để xây dựng preprocessor.
 
     Returns:
-        Dict[str, Pipeline]: Dictionary chứa các Pipeline chưa được huấn luyện.
+        Dict[str, Pipeline]: Dictionary chứa các Pipeline chưa qua huấn luyện.
     """
     preprocessor = build_classification_preprocessor(X)
 
-    # 1. Pipeline Hồi quy Logic (Logistic Regression)
+    # 1. Pipeline Logistic Regression
     lr_pipeline = Pipeline(
         steps=[
             ("preprocessor", preprocessor),
@@ -69,17 +44,22 @@ def build_classification_pipelines(X: pd.DataFrame) -> Dict[str, Pipeline]:
         ]
     )
 
-    # 2. Pipeline Hồi quy Tuyến tính (Linear Regression Classifier)
-    lin_pipeline = Pipeline(
+    # 2. Pipeline Random Forest Classifier
+    rf_pipeline = Pipeline(
         steps=[
             ("preprocessor", preprocessor),
-            ("classifier", LinearRegressionClassifier()),
+            (
+                "classifier",
+                RandomForestClassifier(
+                    class_weight="balanced", random_state=42
+                ),
+            ),
         ]
     )
 
     return {
         "logistic_regression": lr_pipeline,
-        "linear_regression": lin_pipeline,
+        "random_forest": rf_pipeline,
     }
 
 
@@ -89,37 +69,40 @@ def tune_classifiers(
     cv: int = 5,
     random_state: int = 42,
 ) -> Dict[str, Dict[str, Any]]:
-    """
-    Tìm tham số tối ưu nhất cho Hồi quy Logic và Hồi quy Tuyến tính thông qua GridSearchCV.
-    Được fit hoàn toàn trên tập Train để tránh rò rỉ dữ liệu (Data Leakage).
+    """Tìm tham số tối ưu cho Logistic Regression và Random Forest bằng
+
+    GridSearchCV.
+
+    Chỉ fit trên X_train và y_train để tránh rò rỉ dữ liệu (Data Leakage).
 
     Args:
         X_train (pd.DataFrame): Tập đặc trưng huấn luyện.
-        y_train (pd.Series): Nhãn mục tiêu huấn luyện.
-        cv (int): Số lượng fold Cross-Validation.
-        random_state (int): Random seed phục vụ tái tạo kết quả.
+        y_train (pd.Series): Nhãn mục tiêu huấn luyện (0/1).
+        cv (int): Số fold Cross-Validation.
+        random_state (int): Seed phục vụ tái tạo kết quả.
 
     Returns:
-        Dict[str, Dict[str, Any]]: Báo cáo chứa best_estimator_, best_params_ và cv_score.
+        Dict[str, Dict[str, Any]]: Báo cáo chứa best_estimator_, best_params_
+        và cv_score.
     """
     pipelines = build_classification_pipelines(X_train)
 
-    # Lưới tham số tối ưu cho Hồi quy Logic
+    # Lưới tham số tối ưu cho Logistic Regression
     param_grid_lr = {
-        "classifier__C": [0.001, 0.01, 0.1, 1.0, 10.0, 100.0],
+        "classifier__C": [0.01, 0.1, 1.0, 10.0],
         "classifier__solver": ["lbfgs", "liblinear"],
-        "classifier__penalty": ["l2"],
     }
 
-    # Lưới tham số tối ưu cho Hồi quy Tuyến tính
-    param_grid_lin = {
-        "classifier__threshold": [0.3, 0.4, 0.5, 0.6],
-        "classifier__fit_intercept": [True, False],
+    # Lưới tham số tối ưu cho Random Forest
+    param_grid_rf = {
+        "classifier__n_estimators": [50, 100, 200],
+        "classifier__max_depth": [5, 10, 15, None],
+        "classifier__min_samples_split": [2, 5],
     }
 
     param_grids = {
         "logistic_regression": param_grid_lr,
-        "linear_regression": param_grid_lin,
+        "random_forest": param_grid_rf,
     }
 
     tuned_results: Dict[str, Dict[str, Any]] = {}
@@ -147,15 +130,16 @@ def tune_classifiers(
 def predict_classifiers(
     fitted_models: Dict[str, Any], X_test: pd.DataFrame
 ) -> Dict[str, pd.Series]:
-    """
-    Tạo dự đoán nhãn 0/1 trên tập kiểm thử X_test cho các mô hình đã tối ưu tham số.
+    """Tạo dự đoán nhãn 0/1 trên tập kiểm thử X_test cho các mô hình đã tối ưu.
 
     Args:
-        fitted_models (Dict[str, Any]): Dictionary chứa kết quả từ tune_classifiers.
+        fitted_models (Dict[str, Any]): Dictionary chứa kết quả từ
+          tune_classifiers.
         X_test (pd.DataFrame): Tập đặc trưng kiểm thử.
 
     Returns:
-        Dict[str, pd.Series]: Nhãn dự đoán tương ứng với index của X_test.
+        Dict[str, pd.Series]: Nhãn dự đoán dạng pd.Series giữ nguyên index của
+        X_test.
     """
     predictions: Dict[str, pd.Series] = {}
 
