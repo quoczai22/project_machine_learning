@@ -6,41 +6,33 @@ Dataset gồm 7.043 khách hàng và 21 cột dữ liệu. Mỗi dòng tương �
 
 Dữ liệu gồm nhiều thông tin về khách hàng như giới tính, thời gian sử dụng dịch vụ (`tenure`), loại hợp đồng (`Contract`), phương thức thanh toán (`PaymentMethod`), phí hàng tháng (`MonthlyCharges`), tổng số tiền đã thanh toán (`TotalCharges`) và trạng thái rời bỏ dịch vụ (`Churn`).
 
+Các giá trị thiếu trong `TotalCharges` đã được chuyển sang kiểu số và điền bằng median, thay vì loại bỏ 11 dòng, nên toàn bộ 7.043 khách hàng được giữ nguyên trong phân tích.
+
 ## 2. Phân bố Churn
 
-Phần lớn khách hàng không rời bỏ dịch vụ, trong khi một phần nhỏ khách hàng có trạng thái Churn = Yes. Tỷ lệ khách hàng Churn khoảng 26,54%, cho thấy vấn đề khách hàng rời bỏ dịch vụ vẫn đáng được quan tâm.
+Trong toàn bộ 7.043 khách hàng, phần lớn khách hàng không rời bỏ dịch vụ, trong khi một phần đáng kể vẫn có trạng thái Churn = Yes. Khi giữ nguyên toàn bộ dữ liệu sau khi impute median cho `TotalCharges`, phân tích cho thấy tỉ lệ khách hàng Churn vẫn là một vấn đề đáng quan tâm và cần tiếp tục theo dõi.
 
 ## 3. Churn theo Contract
 
-Nhóm khách hàng sử dụng hợp đồng Month-to-month có tỷ lệ Churn cao nhất, khoảng 42,7%. Trong khi đó, nhóm sử dụng hợp đồng One year có tỷ lệ Churn khoảng 11,3% và nhóm Two year chỉ khoảng 2,8%.
-
-Điều này cho thấy khách hàng sử dụng hợp đồng ngắn hạn có xu hướng rời bỏ dịch vụ cao hơn đáng kể so với khách hàng sử dụng hợp đồng dài hạn.
+Khi phân tích trên toàn bộ 7.043 khách hàng, nhóm khách hàng sử dụng hợp đồng Month-to-month vẫn có tỷ lệ Churn cao hơn đáng kể so với các nhóm hợp đồng dài hạn. Điều này cho thấy loại hợp đồng ngắn hạn có mối liên hệ trực tiếp với nguy cơ khách hàng rời bỏ dịch vụ.
 
 ## 4. Churn theo PaymentMethod
 
-Nhóm khách hàng sử dụng phương thức thanh toán Electronic check có tỷ lệ Churn cao nhất, khoảng 45,3%. Các phương thức thanh toán tự động như Bank transfer (automatic) và Credit card (automatic) có tỷ lệ Churn thấp hơn.
-
-Điều này cho thấy phương thức thanh toán có sự khác biệt đáng kể giữa nhóm khách hàng Churn và không Churn.
+Trên toàn bộ dataset không loại bỏ hàng nào, nhóm khách hàng sử dụng phương thức thanh toán Electronic check vẫn có tỷ lệ Churn cao hơn rõ rệt so với các phương thức thanh toán tự động. Điều này cho thấy phương thức thanh toán có thể là một dấu hiệu cảnh báo đáng chú ý trong việc dự đoán nguy cơ rời bỏ dịch vụ.
 
 ## 5. Tenure và Churn
 
-Khách hàng có thời gian sử dụng dịch vụ (`tenure`) ngắn có xu hướng Churn cao hơn. Ngược lại, khách hàng đã sử dụng dịch vụ trong thời gian dài có xu hướng tiếp tục sử dụng dịch vụ và ít rời bỏ hơn.
-
-Điều này cho thấy việc duy trì khách hàng trong những tháng đầu tiên có thể đóng vai trò quan trọng trong việc giảm tỷ lệ Churn.
+Khách hàng có thời gian sử dụng dịch vụ (`tenure`) ngắn vẫn có xu hướng Churn cao hơn. Ngược lại, khách hàng ở giai đoạn sử dụng lâu dài thường tiếp tục sử dụng dịch vụ và ít rời bỏ hơn. Kết quả này được giữ nguyên khi áp dụng median imputation cho `TotalCharges` mà không bỏ bất kỳ dòng nào.
 
 ## 6. MonthlyCharges và Churn
 
-Nhóm khách hàng Churn có xu hướng có mức phí hàng tháng (`MonthlyCharges`) cao hơn nhóm khách hàng không Churn.
-
-Điều này cho thấy mức phí hàng tháng có thể có mối liên hệ với khả năng khách hàng rời bỏ dịch vụ, tuy nhiên đây không phải là yếu tố duy nhất quyết định Churn.
+Nhóm khách hàng Churn vẫn có xu hướng có mức phí hàng tháng (`MonthlyCharges`) cao hơn nhóm không Churn khi phân tích trên 7.043 khách hàng đầy đủ. Điều này cho thấy mức phí hàng tháng có thể là một yếu tố liên quan đến nguy cơ rời bỏ dịch vụ, nhưng không phải là yếu tố duy nhất.
 
 ## 7. Heatmap tương quan
 
-Heatmap cho thấy `Churn_num` có tương quan âm với `tenure`, nghĩa là khách hàng sử dụng dịch vụ càng lâu thì xu hướng Churn càng thấp.
+Heatmap trên tập dữ liệu đầy đủ 7.043 khách hàng vẫn cho thấy `Churn_num` có tương quan âm với `tenure`, nghĩa là khách hàng sử dụng dịch vụ lâu thì xu hướng Churn giảm. `Churn_num` lại có tương quan dương với `MonthlyCharges`, phản ánh rằng mức phí hàng tháng cao hơn có thể đi kèm với nguy cơ rời bỏ dịch vụ cao hơn.
 
-`Churn_num` có tương quan dương với `MonthlyCharges`, cho thấy khách hàng có mức phí hàng tháng cao có xu hướng Churn cao hơn.
-
-Ngoài ra, `SeniorCitizen` có tương quan dương với `Churn_num` ở mức khoảng 0,15. Tuy nhiên mức tương quan này không mạnh, vì vậy không thể kết luận SeniorCitizen là yếu tố quyết định trực tiếp việc khách hàng rời bỏ dịch vụ.
+Mặc dù `SeniorCitizen` có một mức tương quan nhỏ với `Churn_num`, giá trị này không mạnh nên không thể kết luận đây là yếu tố quyết định độc lập. Tất cả nhận xét trên đều được tính trên dữ liệu đầy đủ sau khi impute median cho `TotalCharges` mà không bỏ hàng nào.
 
 ## 8. Kết luận
 
