@@ -1,0 +1,15 @@
+2026-08-29 16:18:40 - [INFO] - ============================================================
+2026-08-29 16:18:40 - [INFO] - KHI BẮT ĐẦU THỰC NGHIỆM PHÂN LỚP (CLASSIFICATION EXPERIMENT)
+2026-08-29 16:18:40 - [INFO] - ============================================================
+2026-08-29 16:18:40 - [INFO] - [1/5] Đang đọc dữ liệu từ đường dẫn: data/processed/telco_train_data.csv
+2026-08-29 16:18:40 - [INFO] - -> Kích thước dữ liệu gốc: 5634 dòng, 32 cột
+2026-08-29 16:18:40 - [INFO] - [2/5] Tiến hành ép kiểu và làm sạch dữ liệu khuyết...
+2026-08-29 16:18:40 - [INFO] - [3/5] Phân chia dữ liệu Train/Test (Tỷ lệ 80/20, Stratify)...
+2026-08-29 16:18:40 - [INFO] - -> Tập Train: 4507 mẫu | Tập Test: 1127 mẫu
+2026-08-29 16:18:40 - [INFO] - [4/5] Khởi chạy Cross-Validation & GridSearch tối ưu cho mô hình...
+2026-08-29 16:18:56 - [INFO] - -> Hoàn tất quá trình GridSearch trong: 15.54 giây
+2026-08-29 16:18:56 - [INFO] - [5/5] Dự đoán và tính toán các chỉ số đánh giá (Metrics)...
+2026-08-29 16:18:56 - [INFO] - Mô hình: LOGISTIC_REGRESSION | Params: {'classifier__C': 1.0, 'classifier__solver': 'liblinear'} | Accuracy: 0.7524 | Precision: 0.5219 | Recall: 0.7960 | F1: 0.6305
+2026-08-29 16:18:56 - [INFO] - Mô hình: RANDOM_FOREST | Params: {'classifier__max_depth': 10, 'classifier__min_samples_split': 5, 'classifier__n_estimators': 200} | Accuracy: 0.7675 | Precision: 0.5437 | Recall: 0.7692 | F1: 0.6371
+2026-08-29 16:18:56 - [INFO] - [LƯU THÀNH CÔNG] Bảng kết quả metrics lưu tại: data/processed/classification_results.csv
+2026-08-29 16:18:56 - [INFO] - ============================================================

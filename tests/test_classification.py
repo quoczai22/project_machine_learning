@@ -1,5 +1,6 @@
-"""
-Unit tests cho src/classification.py
+"""Unit tests cho src/classification.py.
+
+Đảm bảo kiểm tra dự đoán chi tiết cho cả Logistic Regression và Random Forest.
 """
 
 import pandas as pd
@@ -7,14 +8,13 @@ import pytest
 from sklearn.pipeline import Pipeline
 from src.classification import (
     build_classification_pipelines,
-    tune_classifiers,
     predict_classifiers,
+    tune_classifiers,
 )
 
 
 @pytest.fixture
 def sample_data():
-    """Tạo dữ liệu giả lập chuẩn cấu trúc Telco Churn."""
     X = pd.DataFrame(
         {
             "tenure": [1, 12, 24, 60, 5, 36, 48, 2, 70, 10],
@@ -82,18 +82,25 @@ def test_build_classification_pipelines(sample_data):
     assert isinstance(pipelines["random_forest"], Pipeline)
 
 
-def test_tune_and_predict_classifiers(sample_data):
+def test_predict_classifiers_both_models_thoroughly(sample_data):
     X, y = sample_data
     tuned = tune_classifiers(X, y, cv=2)
-
-    assert "logistic_regression" in tuned
-    assert "random_forest" in tuned
-    assert "estimator" in tuned["logistic_regression"]
-    assert "best_params" in tuned["logistic_regression"]
-    assert "cv_score" in tuned["logistic_regression"]
-
     preds = predict_classifiers(tuned, X)
+
+    # 1. Test chi tiết Logistic Regression Prediction
     assert "logistic_regression" in preds
+    lr_pred = preds["logistic_regression"]
+    assert len(lr_pred) == len(X)
+    assert set(lr_pred.unique()).issubset({0, 1})
+
+    # 2. Test chi tiết Random Forest Prediction
     assert "random_forest" in preds
-    assert len(preds["logistic_regression"]) == len(X)
-    assert set(preds["logistic_regression"].unique()).issubset({0, 1})
+    rf_pred = preds["random_forest"]
+    assert len(rf_pred) == len(X)
+    assert set(rf_pred.unique()).issubset({0, 1})
+
+    # 3. Test Xác suất dự đoán (Predict Proba) cho cả 2
+    for model_name in ["logistic_regression", "random_forest"]:
+        estimator = tuned[model_name]["estimator"]
+        probas = estimator.predict_proba(X)
+        assert probas.shape == (len(X), 2)

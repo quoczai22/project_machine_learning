@@ -1,0 +1,8 @@
+2026-08-29 16:15:17,528 - [INFO] - ============================================================
+2026-08-29 16:15:17,532 - [INFO] - ============================================================
+2026-08-29 16:15:31,345 - [INFO] -  Best Params : {'classifier__C': 1.0, 'classifier__solver': 'liblinear'}
+2026-08-29 16:15:31,345 - [INFO] -  CV F1-Score : 0.6280
+2026-08-29 16:15:31,345 - [INFO] -  Test Metrics: Acc=0.7524 | Prec=0.5219 | Rec=0.7960 | F1=0.6305
+2026-08-29 16:15:31,354 - [INFO] -  Best Params : {'classifier__max_depth': 10, 'classifier__min_samples_split': 5, 'classifier__n_estimators': 200}
+2026-08-29 16:15:31,354 - [INFO] -  CV F1-Score : 0.6350
+2026-08-29 16:15:31,354 - [INFO] -  Test Metrics: Acc=0.7675 | Prec=0.5437 | Rec=0.7692 | F1=0.6371
