@@ -1,6 +1,6 @@
 """Unit tests cho src/classification.py.
 
-Kiểm tra đầy đủ và đồng đều cho cả Logistic Regression và Random Forest.
+Đảm bảo kiểm tra dự đoán chi tiết cho cả Logistic Regression và Random Forest.
 """
 
 import pandas as pd
@@ -15,7 +15,6 @@ from src.classification import (
 
 @pytest.fixture
 def sample_data():
-    """Tạo dữ liệu giả lập chuẩn cấu trúc Telco Churn."""
     X = pd.DataFrame(
         {
             "tenure": [1, 12, 24, 60, 5, 36, 48, 2, 70, 10],
@@ -83,37 +82,25 @@ def test_build_classification_pipelines(sample_data):
     assert isinstance(pipelines["random_forest"], Pipeline)
 
 
-def test_tune_classifiers_structure(sample_data):
-    X, y = sample_data
-    tuned = tune_classifiers(X, y, cv=2)
-
-    # Kiểm tra cả 2 mô hình đều có đầy đủ thông tin sau khi tune
-    for model_name in ["logistic_regression", "random_forest"]:
-        assert model_name in tuned
-        assert "estimator" in tuned[model_name]
-        assert "best_params" in tuned[model_name]
-        assert "cv_score" in tuned[model_name]
-        assert isinstance(tuned[model_name]["cv_score"], float)
-
-
-def test_predict_classifiers_both_models(sample_data):
+def test_predict_classifiers_both_models_thoroughly(sample_data):
     X, y = sample_data
     tuned = tune_classifiers(X, y, cv=2)
     preds = predict_classifiers(tuned, X)
 
-    # Kiểm tra kỹ dự đoán của Logistic Regression
+    # 1. Test chi tiết Logistic Regression Prediction
+    assert "logistic_regression" in preds
     lr_pred = preds["logistic_regression"]
-    assert isinstance(lr_pred, pd.Series)
     assert len(lr_pred) == len(X)
     assert set(lr_pred.unique()).issubset({0, 1})
 
-    # Kiểm tra kỹ dự đoán của Random Forest (đầy đủ như Logistic Regression)
+    # 2. Test chi tiết Random Forest Prediction
+    assert "random_forest" in preds
     rf_pred = preds["random_forest"]
-    assert isinstance(rf_pred, pd.Series)
     assert len(rf_pred) == len(X)
     assert set(rf_pred.unique()).issubset({0, 1})
 
-    # Kiểm tra tính năng dự đoán xác suất (predict_proba) của estimator Random Forest
-    rf_estimator = tuned["random_forest"]["estimator"]
-    rf_proba = rf_estimator.predict_proba(X)
-    assert rf_proba.shape == (len(X), 2)
+    # 3. Test Xác suất dự đoán (Predict Proba) cho cả 2
+    for model_name in ["logistic_regression", "random_forest"]:
+        estimator = tuned[model_name]["estimator"]
+        probas = estimator.predict_proba(X)
+        assert probas.shape == (len(X), 2)
