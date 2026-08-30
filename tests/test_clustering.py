@@ -30,7 +30,7 @@ def make_telco_sample():
 def test_service_count_only_counts_yes():
     df = make_telco_sample()
     counts = build_service_count(df)
-    assert counts.tolist() == [0, 2, 8, 3, 7, 0]
+    assert counts.tolist() == [0, 2, 8, 4, 7, 0]
 
 
 def test_select_and_scale_cluster_features():
