@@ -1,22 +1,20 @@
-"""Customer segmentation with K-Means, Hierarchical Clustering and DBSCAN.
+"""Clustering benchmark for the Telco Customer Churn project.
 
-This module is intentionally independent from the classification pipeline.
-The clustering features are:
-    - tenure
-    - MonthlyCharges
-    - service_count
+Required deliverable:
+- K-Means vs Hierarchical Clustering on the real Telco CSV.
+- Elbow + Silhouette evaluation.
+- PCA plots.
+- Explicit optimal k for each algorithm.
+- Business-readable cluster profiles.
+- Reproducible logging throughout the run.
+- Optional DBSCAN benchmark as an extension.
 
-``Churn`` and ``customerID`` are never used to fit a clustering model.
-``Churn`` can be supplied only after fitting for an optional external
-evaluation (ARI/NMI) and for business profiling.
-
-Service-count rule:
-    Count a service when its value is exactly ``"Yes"``.
-    ``No``, ``No internet service`` and ``No phone service`` contribute 0.
+Clustering NEVER uses Churn or customerID as model inputs.
 """
-
 from __future__ import annotations
 
+import argparse
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -25,551 +23,292 @@ import numpy as np
 import pandas as pd
 from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans
 from sklearn.decomposition import PCA
-from sklearn.metrics import (
-    adjusted_rand_score,
-    normalized_mutual_info_score,
-    silhouette_score,
-)
+from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, silhouette_score
 from sklearn.preprocessing import StandardScaler
-
 
 RANDOM_STATE = 42
 CLUSTER_FEATURES = ["tenure", "MonthlyCharges", "service_count"]
-
 SERVICE_COLUMNS = [
-    "PhoneService",
-    "MultipleLines",
-    "OnlineSecurity",
-    "OnlineBackup",
-    "DeviceProtection",
-    "TechSupport",
-    "StreamingTV",
-    "StreamingMovies",
+    "PhoneService", "MultipleLines", "OnlineSecurity", "OnlineBackup",
+    "DeviceProtection", "TechSupport", "StreamingTV", "StreamingMovies",
 ]
 
 
+def setup_logger(log_path: Path) -> logging.Logger:
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    logger = logging.getLogger("clustering")
+    logger.setLevel(logging.INFO)
+    logger.handlers.clear()
+    fmt = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s", "%H:%M:%S")
+    sh = logging.StreamHandler()
+    sh.setFormatter(fmt)
+    fh = logging.FileHandler(log_path, encoding="utf-8")
+    fh.setFormatter(fmt)
+    logger.addHandler(sh)
+    logger.addHandler(fh)
+    return logger
+
+
 def build_service_count(df: pd.DataFrame) -> pd.Series:
-    """Count subscribed services whose value is exactly ``Yes``.
-
-    Args:
-        df: Cleaned Telco customer DataFrame.
-
-    Returns:
-        Series aligned with ``df.index`` containing the number of active
-        services for each customer.
-
-    Raises:
-        ValueError: If a required service column is missing.
-    """
     missing = [c for c in SERVICE_COLUMNS if c not in df.columns]
     if missing:
         raise ValueError(f"Missing service columns: {missing}")
-
     return df[SERVICE_COLUMNS].eq("Yes").sum(axis=1).astype(float)
 
 
 def select_cluster_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Build the three documented clustering features.
-
-    ``TotalCharges`` and ``Churn`` are deliberately excluded. ``customerID``
-    is also excluded because it is only an identifier.
-    """
     required = {"tenure", "MonthlyCharges", *SERVICE_COLUMNS}
-    missing = sorted(required.difference(df.columns))
+    missing = sorted(required - set(df.columns))
     if missing:
         raise ValueError(f"Missing clustering columns: {missing}")
-
-    features = pd.DataFrame(index=df.index)
-    features["tenure"] = pd.to_numeric(df["tenure"], errors="coerce")
-    features["MonthlyCharges"] = pd.to_numeric(
-        df["MonthlyCharges"], errors="coerce"
-    )
-    features["service_count"] = build_service_count(df)
-
-    if features.isna().any().any():
-        raise ValueError("Clustering features contain missing/non-numeric values.")
-
-    return features
+    out = pd.DataFrame(index=df.index)
+    out["tenure"] = pd.to_numeric(df["tenure"], errors="coerce")
+    out["MonthlyCharges"] = pd.to_numeric(df["MonthlyCharges"], errors="coerce")
+    out["service_count"] = build_service_count(df)
+    if out.isna().any().any():
+        raise ValueError("Clustering features contain missing/non-numeric values")
+    return out
 
 
-def scale_cluster_features(
-    features: pd.DataFrame,
-) -> tuple[pd.DataFrame, StandardScaler]:
-    """Standard-scale clustering features and return the fitted scaler."""
-    missing = [c for c in CLUSTER_FEATURES if c not in features.columns]
-    if missing:
-        raise ValueError(f"Missing clustering features: {missing}")
-
+def scale_cluster_features(features: pd.DataFrame):
     scaler = StandardScaler()
     scaled = scaler.fit_transform(features[CLUSTER_FEATURES])
-    scaled_df = pd.DataFrame(
-        scaled, index=features.index, columns=CLUSTER_FEATURES
-    )
-    return scaled_df, scaler
+    return pd.DataFrame(scaled, index=features.index, columns=CLUSTER_FEATURES), scaler
 
 
-def _silhouette_or_nan(X: np.ndarray, labels: np.ndarray) -> float:
-    """Return silhouette when at least two non-empty clusters exist."""
+def silhouette_or_nan(X: np.ndarray, labels: np.ndarray) -> float:
     unique = np.unique(labels)
     if len(unique) < 2 or len(unique) >= len(labels):
         return float("nan")
     return float(silhouette_score(X, labels))
 
 
-def evaluate_cluster_candidates(
-    X_scaled: pd.DataFrame,
-    k_values: range = range(2, 9),
-    random_state: int = RANDOM_STATE,
-) -> pd.DataFrame:
-    """Evaluate K-Means and Hierarchical candidates for every k.
-
-    Returns a tidy DataFrame with inertia (K-Means only) and silhouette.
-    Hierarchical uses Ward linkage because the clustering space is
-    standardized and Euclidean distance is appropriate.
-    """
-    rows: list[dict[str, Any]] = []
+def evaluate_kmeans_hierarchical(X_scaled: pd.DataFrame, k_values=range(2, 9)) -> pd.DataFrame:
+    rows = []
     X = X_scaled.to_numpy()
-
     for k in k_values:
-        kmeans = KMeans(
-            n_clusters=k,
-            random_state=random_state,
-            n_init=20,
-        )
-        km_labels = kmeans.fit_predict(X)
-        rows.append(
-            {
-                "algorithm": "KMeans",
-                "parameters": f"k={k}",
-                "k": k,
-                "linkage": None,
-                "eps": None,
-                "min_samples": None,
-                "inertia": float(kmeans.inertia_),
-                "silhouette": _silhouette_or_nan(X, km_labels),
-                "noise_ratio": 0.0,
-            }
-        )
+        km = KMeans(n_clusters=k, random_state=RANDOM_STATE, n_init=20)
+        km_labels = km.fit_predict(X)
+        rows.append({
+            "algorithm": "KMeans", "k": k, "parameters": f"k={k}",
+            "inertia": float(km.inertia_), "silhouette": silhouette_or_nan(X, km_labels),
+            "noise_ratio": 0.0,
+        })
 
-        hierarchical = AgglomerativeClustering(
-            n_clusters=k,
-            linkage="ward",
-        )
-        h_labels = hierarchical.fit_predict(X)
-        rows.append(
-            {
-                "algorithm": "Hierarchical",
-                "parameters": f"k={k}, linkage=ward",
-                "k": k,
-                "linkage": "ward",
-                "eps": None,
-                "min_samples": None,
-                "inertia": float("nan"),
-                "silhouette": _silhouette_or_nan(X, h_labels),
-                "noise_ratio": 0.0,
-            }
-        )
-
+        hc = AgglomerativeClustering(n_clusters=k, linkage="ward")
+        hc_labels = hc.fit_predict(X)
+        rows.append({
+            "algorithm": "Hierarchical", "k": k, "parameters": f"k={k}, linkage=ward",
+            "inertia": float("nan"), "silhouette": silhouette_or_nan(X, hc_labels),
+            "noise_ratio": 0.0,
+        })
     return pd.DataFrame(rows)
 
 
-def evaluate_dbscan_candidates(
-    X_scaled: pd.DataFrame,
-    eps_values: tuple[float, ...] = (
-        0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 1.00, 1.20
-    ),
-    min_samples_values: tuple[int, ...] = (5, 10, 15, 20),
-) -> pd.DataFrame:
-    """Evaluate DBSCAN over a small reproducible parameter grid.
-
-    Noise points (label ``-1``) are excluded from the silhouette calculation,
-    while their proportion is reported separately. Configurations with fewer
-    than two non-noise clusters receive NaN silhouette.
-    """
-    rows: list[dict[str, Any]] = []
+def evaluate_dbscan(X_scaled: pd.DataFrame,
+                    eps_values=(0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 1.00, 1.20),
+                    min_samples_values=(5, 10, 15, 20)) -> pd.DataFrame:
+    rows = []
     X = X_scaled.to_numpy()
-
     for eps in eps_values:
-        for min_samples in min_samples_values:
-            model = DBSCAN(eps=eps, min_samples=min_samples)
-            labels = model.fit_predict(X)
-
+        for ms in min_samples_values:
+            labels = DBSCAN(eps=eps, min_samples=ms).fit_predict(X)
             non_noise = labels != -1
-            n_noise = int((~non_noise).sum())
-            noise_ratio = n_noise / len(labels)
-
-            valid_labels = labels[non_noise]
-            if (
-                valid_labels.size > 0
-                and len(np.unique(valid_labels)) >= 2
-                and len(valid_labels) > len(np.unique(valid_labels))
-            ):
-                silhouette = float(
-                    silhouette_score(X[non_noise], valid_labels)
-                )
-            else:
-                silhouette = float("nan")
-
-            rows.append(
-                {
-                    "algorithm": "DBSCAN",
-                    "parameters": (
-                        f"eps={eps}, min_samples={min_samples}"
-                    ),
-                    "k": len(set(valid_labels)) if valid_labels.size else 0,
-                    "linkage": None,
-                    "eps": eps,
-                    "min_samples": min_samples,
-                    "inertia": float("nan"),
-                    "silhouette": silhouette,
-                    "noise_ratio": noise_ratio,
-                }
-            )
-
+            valid = labels[non_noise]
+            n_clusters = len(np.unique(valid)) if len(valid) else 0
+            sil = silhouette_or_nan(X[non_noise], valid) if n_clusters >= 2 else float("nan")
+            rows.append({
+                "algorithm": "DBSCAN", "k": n_clusters,
+                "parameters": f"eps={eps}, min_samples={ms}",
+                "inertia": float("nan"), "silhouette": sil,
+                "noise_ratio": float((~non_noise).mean()),
+                "eps": eps, "min_samples": ms,
+            })
     return pd.DataFrame(rows)
 
 
-def fit_cluster_models(
-    X_scaled: pd.DataFrame,
-    n_clusters: int,
-    random_state: int = RANDOM_STATE,
-) -> dict[str, object]:
-    """Fit the required K-Means and Hierarchical models at chosen k.
 
-    The selected k should come from ``evaluate_cluster_candidates`` rather
-    than being chosen arbitrarily.
-    """
+# Backward-compatible names used by the existing project tests.
+evaluate_cluster_candidates = evaluate_kmeans_hierarchical
+evaluate_dbscan_candidates = evaluate_dbscan
+
+def add_external_metrics(results: pd.DataFrame, X_scaled: pd.DataFrame, y: pd.Series | None) -> pd.DataFrame:
+    if y is None:
+        return results
+    y_arr = np.asarray(y).astype(int)
     X = X_scaled.to_numpy()
-
-    kmeans = KMeans(
-        n_clusters=n_clusters,
-        random_state=random_state,
-        n_init=20,
-    )
-    hierarchical = AgglomerativeClustering(
-        n_clusters=n_clusters,
-        linkage="ward",
-    )
-
-    return {
-        "kmeans": {
-            "model": kmeans,
-            "labels": kmeans.fit_predict(X),
-        },
-        "hierarchical": {
-            "model": hierarchical,
-            "labels": hierarchical.fit_predict(X),
-        },
-    }
-
-
-def fit_dbscan(
-    X_scaled: pd.DataFrame,
-    eps: float,
-    min_samples: int,
-) -> dict[str, object]:
-    """Fit DBSCAN using a parameter combination selected by evaluation."""
-    model = DBSCAN(eps=eps, min_samples=min_samples)
-    labels = model.fit_predict(X_scaled.to_numpy())
-    return {"model": model, "labels": labels}
+    aris, nmis = [], []
+    for r in results.itertuples(index=False):
+        if r.algorithm == "KMeans":
+            labels = KMeans(n_clusters=int(r.k), random_state=RANDOM_STATE, n_init=20).fit_predict(X)
+            mask = np.ones(len(labels), dtype=bool)
+        elif r.algorithm == "Hierarchical":
+            labels = AgglomerativeClustering(n_clusters=int(r.k), linkage="ward").fit_predict(X)
+            mask = np.ones(len(labels), dtype=bool)
+        else:
+            labels = DBSCAN(eps=float(r.eps), min_samples=int(r.min_samples)).fit_predict(X)
+            mask = labels != -1
+        if mask.sum() > 1 and len(np.unique(labels[mask])) >= 2:
+            aris.append(adjusted_rand_score(y_arr[mask], labels[mask]))
+            nmis.append(normalized_mutual_info_score(y_arr[mask], labels[mask]))
+        else:
+            aris.append(float("nan")); nmis.append(float("nan"))
+    out = results.copy()
+    out["ARI_vs_Churn"] = aris
+    out["NMI_vs_Churn"] = nmis
+    return out
 
 
-def compare_best_models(
-    X_scaled: pd.DataFrame,
-    y_churn: pd.Series | None = None,
-    k_values: range = range(2, 9),
-) -> tuple[pd.DataFrame, dict[str, dict[str, object]]]:
-    """Run the complete benchmark and return a ranked result table.
-
-    The primary ranking criterion is silhouette score. If ``y_churn`` is
-    provided, ARI/NMI are added as external validation only; the labels are
-    never used to fit any model.
-    """
-    classical = evaluate_cluster_candidates(X_scaled, k_values=k_values)
-    dbscan = evaluate_dbscan_candidates(X_scaled)
-    results = pd.concat([classical, dbscan], ignore_index=True)
-
-    if y_churn is not None:
-        y = np.asarray(y_churn).astype(int)
-        ari_values = []
-        nmi_values = []
-
-        for row in results.itertuples(index=False):
-            if row.algorithm == "KMeans":
-                model = KMeans(
-                    n_clusters=int(row.k),
-                    random_state=RANDOM_STATE,
-                    n_init=20,
-                )
-                labels = model.fit_predict(X_scaled.to_numpy())
-                mask = np.ones(len(labels), dtype=bool)
-            elif row.algorithm == "Hierarchical":
-                model = AgglomerativeClustering(
-                    n_clusters=int(row.k), linkage="ward"
-                )
-                labels = model.fit_predict(X_scaled.to_numpy())
-                mask = np.ones(len(labels), dtype=bool)
-            else:
-                model = DBSCAN(
-                    eps=float(row.eps),
-                    min_samples=int(row.min_samples),
-                )
-                labels = model.fit_predict(X_scaled.to_numpy())
-                mask = labels != -1
-
-            if mask.sum() > 1 and len(np.unique(labels[mask])) >= 2:
-                ari_values.append(adjusted_rand_score(y[mask], labels[mask]))
-                nmi_values.append(
-                    normalized_mutual_info_score(y[mask], labels[mask])
-                )
-            else:
-                ari_values.append(float("nan"))
-                nmi_values.append(float("nan"))
-
-        results["ARI_vs_Churn"] = ari_values
-        results["NMI_vs_Churn"] = nmi_values
-
-    ranked = results.sort_values(
-        by=["silhouette", "noise_ratio"],
-        ascending=[False, True],
-        na_position="last",
-    ).reset_index(drop=True)
-
-    selected: dict[str, dict[str, object]] = {}
-    for algorithm in ranked["algorithm"].unique():
-        subset = ranked[ranked["algorithm"] == algorithm].dropna(
-            subset=["silhouette"]
-        )
-        if subset.empty:
-            continue
-        best = subset.iloc[0]
-        selected[algorithm] = best.to_dict()
-
+def rank_results(results: pd.DataFrame):
+    ranked = results.sort_values(["silhouette", "noise_ratio"], ascending=[False, True], na_position="last").reset_index(drop=True)
+    selected = {}
+    for alg in ["KMeans", "Hierarchical", "DBSCAN"]:
+        sub = ranked[(ranked.algorithm == alg) & ranked.silhouette.notna()]
+        if not sub.empty:
+            selected[alg] = sub.iloc[0].to_dict()
     return ranked, selected
 
 
-def save_elbow_silhouette_plot(
-    results: pd.DataFrame,
-    output_path: str | Path,
-) -> None:
-    """Save Elbow and Silhouette curves for K-Means/Hierarchical."""
-    output = Path(output_path)
-    output.parent.mkdir(parents=True, exist_ok=True)
-
+def save_elbow_silhouette(results: pd.DataFrame, path: Path):
     fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
-
-    km = results[results["algorithm"] == "KMeans"].sort_values("k")
-    axes[0].plot(km["k"], km["inertia"], marker="o")
-    axes[0].set_title("K-Means Elbow")
-    axes[0].set_xlabel("Number of clusters (k)")
-    axes[0].set_ylabel("Inertia")
-    axes[0].grid(alpha=0.25)
-
-    for algorithm in ["KMeans", "Hierarchical"]:
-        subset = results[results["algorithm"] == algorithm].sort_values("k")
-        axes[1].plot(
-            subset["k"],
-            subset["silhouette"],
-            marker="o",
-            label=algorithm,
-        )
-    axes[1].set_title("Silhouette by k")
-    axes[1].set_xlabel("Number of clusters (k)")
-    axes[1].set_ylabel("Silhouette score")
-    axes[1].legend()
-    axes[1].grid(alpha=0.25)
-
-    fig.tight_layout()
-    fig.savefig(output, dpi=160, bbox_inches="tight")
-    plt.close(fig)
+    km = results[results.algorithm == "KMeans"].sort_values("k")
+    axes[0].plot(km.k, km.inertia, marker="o")
+    axes[0].set(title="K-Means Elbow", xlabel="Number of clusters (k)", ylabel="Inertia")
+    axes[0].grid(alpha=.25)
+    for alg in ["KMeans", "Hierarchical"]:
+        sub = results[results.algorithm == alg].sort_values("k")
+        axes[1].plot(sub.k, sub.silhouette, marker="o", label=alg)
+    axes[1].set(title="Silhouette by k", xlabel="Number of clusters (k)", ylabel="Silhouette score")
+    axes[1].legend(); axes[1].grid(alpha=.25)
+    fig.tight_layout(); fig.savefig(path, dpi=160, bbox_inches="tight"); plt.close(fig)
 
 
-def save_pca_clusters(
-    X_scaled: pd.DataFrame,
-    labels: np.ndarray,
-    title: str,
-    output_path: str | Path,
-) -> None:
-    """Save a 2D PCA visualization of one clustering result."""
-    output = Path(output_path)
-    output.parent.mkdir(parents=True, exist_ok=True)
-
-    X_pca = PCA(n_components=2, random_state=RANDOM_STATE).fit_transform(
-        X_scaled.to_numpy()
-    )
-
+def save_pca(X_scaled: pd.DataFrame, labels: np.ndarray, title: str, path: Path):
+    coords = PCA(n_components=2, random_state=RANDOM_STATE).fit_transform(X_scaled.to_numpy())
     fig, ax = plt.subplots(figsize=(7, 5))
-    scatter = ax.scatter(
-        X_pca[:, 0],
-        X_pca[:, 1],
-        c=labels,
-        s=12,
-        alpha=0.65,
-    )
-    ax.set_title(title)
-    ax.set_xlabel("PCA 1")
-    ax.set_ylabel("PCA 2")
-    fig.colorbar(scatter, ax=ax, label="Cluster")
-    fig.tight_layout()
-    fig.savefig(output, dpi=160, bbox_inches="tight")
-    plt.close(fig)
+    sc = ax.scatter(coords[:, 0], coords[:, 1], c=labels, s=12, alpha=.65)
+    ax.set(title=title, xlabel="PCA 1", ylabel="PCA 2")
+    fig.colorbar(sc, ax=ax, label="Cluster")
+    fig.tight_layout(); fig.savefig(path, dpi=160, bbox_inches="tight"); plt.close(fig)
 
 
-def profile_clusters(
-    df: pd.DataFrame,
-    labels: np.ndarray,
-) -> pd.DataFrame:
-    """Create a business-readable cluster profile.
-
-    If Churn is present, the table includes churn rate. Churn is not used
-    during clustering.
-    """
-    profile = df.copy()
-    profile["Cluster"] = labels
-
-    agg: dict[str, tuple[str, str]] = {
-        "Customers": ("Cluster", "size"),
-        "AvgTenure": ("tenure", "mean"),
-        "AvgMonthlyCharges": ("MonthlyCharges", "mean"),
-    }
-
-    if "Churn" in profile.columns:
-        if profile["Churn"].dtype == object:
-            churn = profile["Churn"].map({"No": 0, "Yes": 1})
-        else:
-            churn = pd.to_numeric(profile["Churn"], errors="coerce")
-        profile["_churn_binary"] = churn
-        agg["ChurnRate"] = ("_churn_binary", "mean")
-
-    result = profile.groupby("Cluster").agg(**agg).reset_index()
-    if "ChurnRate" in result:
-        result["ChurnRate"] *= 100
-    return result
+def profile_clusters(df: pd.DataFrame, labels: np.ndarray) -> pd.DataFrame:
+    p = df.copy(); p["Cluster"] = labels
+    p["service_count"] = build_service_count(p)
+    p["tenure"] = pd.to_numeric(p["tenure"], errors="coerce")
+    p["MonthlyCharges"] = pd.to_numeric(p["MonthlyCharges"], errors="coerce")
+    rows = []
+    for cluster, g in p.groupby("Cluster"):
+        row = {
+            "Cluster": int(cluster), "Customers": len(g),
+            "CustomerPct": round(100 * len(g) / len(p), 2),
+            "AvgTenureMonths": round(g.tenure.mean(), 2),
+            "AvgMonthlyCharges": round(g.MonthlyCharges.mean(), 2),
+            "AvgServiceCount": round(g.service_count.mean(), 2),
+        }
+        if "Churn" in g.columns:
+            row["ChurnRatePct"] = round(100 * g.Churn.eq("Yes").mean(), 2)
+        if "Contract" in g.columns:
+            row["TopContract"] = g.Contract.mode().iat[0] if not g.Contract.mode().empty else ""
+        if "InternetService" in g.columns:
+            row["TopInternetService"] = g.InternetService.mode().iat[0] if not g.InternetService.mode().empty else ""
+        if "PaymentMethod" in g.columns:
+            row["TopPaymentMethod"] = g.PaymentMethod.mode().iat[0] if not g.PaymentMethod.mode().empty else ""
+        rows.append(row)
+    return pd.DataFrame(rows).sort_values("Cluster")
 
 
-def run_clustering(
-    csv_path: str | Path,
-    output_dir: str | Path = "reports/figures",
-) -> tuple[pd.DataFrame, dict[str, dict[str, object]]]:
-    """Run the complete clustering experiment from the raw Telco CSV.
+def save_business_summary(profile: pd.DataFrame, path: Path):
+    lines = ["# Business interpretation of clusters", ""]
+    for _, r in profile.iterrows():
+        churn = f", churn {r['ChurnRatePct']:.2f}%" if "ChurnRatePct" in r else ""
+        lines.append(
+            f"- Cluster {int(r.Cluster)}: {int(r.Customers)} customers ({r.CustomerPct:.2f}%), "
+            f"average tenure {r.AvgTenureMonths:.2f} months, "
+            f"monthly charge {r.AvgMonthlyCharges:.2f}, "
+            f"average services {r.AvgServiceCount:.2f}{churn}. "
+            f"Typical contract: {r.get('TopContract','N/A')}; "
+            f"internet: {r.get('TopInternetService','N/A')}; "
+            f"payment: {r.get('TopPaymentMethod','N/A')}."
+        )
+    path.write_text("\n".join(lines), encoding="utf-8")
 
-    Saves:
-        clustering_results.csv
-        cluster_profiles_kmeans.csv
-        elbow_silhouette.png
-        pca_kmeans.png
-        pca_hierarchical.png
-        pca_dbscan.png
-    """
-    csv_path = Path(csv_path)
-    output = Path(output_dir)
-    output.mkdir(parents=True, exist_ok=True)
+
+def run_clustering(csv_path: str | Path, output_dir: str | Path = "reports/figures"):
+    output = Path(output_dir); output.mkdir(parents=True, exist_ok=True)
+    logger = setup_logger(output / "clustering_run.log")
+    logger.info("START clustering pipeline")
+    logger.info("Input: %s", csv_path)
+    logger.info("Output: %s", output)
 
     df = pd.read_csv(csv_path)
-
-    # TotalCharges is not used for clustering, but converting it here keeps
-    # the raw-data handling consistent with the project contract.
+    logger.info("Loaded dataset: %d rows x %d columns", *df.shape)
     if "TotalCharges" in df.columns:
         df["TotalCharges"] = pd.to_numeric(df["TotalCharges"], errors="coerce")
+        logger.info("TotalCharges converted to numeric; not used as clustering feature")
 
     features = select_cluster_features(df)
+    logger.info("Features: %s", ", ".join(CLUSTER_FEATURES))
+    logger.info("Churn/customerID excluded from model fitting")
+    logger.info("service_count mean=%.2f, min=%d, max=%d", features.service_count.mean(), int(features.service_count.min()), int(features.service_count.max()))
     X_scaled, _ = scale_cluster_features(features)
+    logger.info("StandardScaler fitted")
 
-    y = None
-    if "Churn" in df.columns:
-        y = df["Churn"].map({"No": 0, "Yes": 1})
+    logger.info("Evaluating K-Means + Hierarchical for k=2..8")
+    results = evaluate_kmeans_hierarchical(X_scaled)
+    logger.info("Evaluating DBSCAN parameter grid as extension")
+    results = pd.concat([results, evaluate_dbscan(X_scaled)], ignore_index=True)
+    y = df["Churn"].map({"No": 0, "Yes": 1}) if "Churn" in df.columns else None
+    results = add_external_metrics(results, X_scaled, y)
+    ranked, selected = rank_results(results)
+    ranked.to_csv(output / "clustering_results.csv", index=False)
 
-    results, selected = compare_best_models(X_scaled, y_churn=y)
-    results.to_csv(output / "clustering_results.csv", index=False)
+    logger.info("BEST MODELS")
+    for alg, row in selected.items():
+        logger.info("%s -> %s | silhouette=%.4f | noise=%.2f%%", alg, row["parameters"], row["silhouette"], 100*row.get("noise_ratio", 0))
+    logger.info("Overall best by silhouette: %s | %s", ranked.iloc[0].algorithm, ranked.iloc[0].parameters)
 
-    save_elbow_silhouette_plot(results, output / "elbow_silhouette.png")
+    save_elbow_silhouette(results, output / "elbow_silhouette.png")
+    logger.info("Saved elbow/silhouette figure")
 
-    # K-Means best model
-    km = selected.get("KMeans")
-    if km is not None:
-        km_model = KMeans(
-            n_clusters=int(km["k"]),
-            random_state=RANDOM_STATE,
-            n_init=20,
-        )
-        km_labels = km_model.fit_predict(X_scaled.to_numpy())
-        save_pca_clusters(
-            X_scaled,
-            km_labels,
-            f"K-Means (k={int(km['k'])})",
-            output / "pca_kmeans.png",
-        )
-        km_profile = profile_clusters(df, km_labels)
-        km_profile.to_csv(
-            output / "cluster_profiles_kmeans.csv", index=False
-        )
+    for alg, fname in [("KMeans", "pca_kmeans.png"), ("Hierarchical", "pca_hierarchical.png"), ("DBSCAN", "pca_dbscan.png")]:
+        if alg not in selected: continue
+        r = selected[alg]
+        if alg == "KMeans":
+            labels = KMeans(n_clusters=int(r["k"]), random_state=RANDOM_STATE, n_init=20).fit_predict(X_scaled)
+        elif alg == "Hierarchical":
+            labels = AgglomerativeClustering(n_clusters=int(r["k"]), linkage="ward").fit_predict(X_scaled)
+        else:
+            labels = DBSCAN(eps=float(r["eps"]), min_samples=int(r["min_samples"])).fit_predict(X_scaled)
+        save_pca(X_scaled, labels, f"{alg} ({r['parameters']})", output / fname)
+        profile = profile_clusters(df, labels)
+        profile.to_csv(output / f"cluster_profiles_{alg.lower()}.csv", index=False)
+        save_business_summary(profile, output / f"cluster_business_{alg.lower()}.md")
+        logger.info("Saved PCA + business profile for %s", alg)
 
-    # Hierarchical best model
-    hc = selected.get("Hierarchical")
-    if hc is not None:
-        hc_model = AgglomerativeClustering(
-            n_clusters=int(hc["k"]),
-            linkage="ward",
-        )
-        hc_labels = hc_model.fit_predict(X_scaled.to_numpy())
-        save_pca_clusters(
-            X_scaled,
-            hc_labels,
-            f"Hierarchical (k={int(hc['k'])}, linkage=ward)",
-            output / "pca_hierarchical.png",
-        )
-
-    # DBSCAN best model
-    db = selected.get("DBSCAN")
-    if db is not None:
-        db_model = DBSCAN(
-            eps=float(db["eps"]),
-            min_samples=int(db["min_samples"]),
-        )
-        db_labels = db_model.fit_predict(X_scaled.to_numpy())
-        save_pca_clusters(
-            X_scaled,
-            db_labels,
-            f"DBSCAN (eps={db['eps']}, min_samples={int(db['min_samples'])})",
-            output / "pca_dbscan.png",
-        )
-
-    return results, selected
+    # Human-readable summary
+    summary = output / "clustering_summary.md"
+    lines = ["# Clustering summary", "", f"Input: `{csv_path}`", f"Rows: {len(df)}", "", "## Best configuration by algorithm", ""]
+    for alg, r in selected.items():
+        lines.append(f"- **{alg}**: {r['parameters']}; Silhouette = **{r['silhouette']:.4f}**; noise = {100*r.get('noise_ratio',0):.2f}%.")
+        if "ARI_vs_Churn" in r and pd.notna(r["ARI_vs_Churn"]):
+            lines.append(f"  - ARI vs Churn = {r['ARI_vs_Churn']:.4f}; NMI = {r['NMI_vs_Churn']:.4f}.")
+    lines += ["", f"## Overall best by Silhouette", f"**{ranked.iloc[0].algorithm} — {ranked.iloc[0].parameters}** with Silhouette **{ranked.iloc[0].silhouette:.4f}**.", "", "Silhouette is the primary model-selection metric; Churn is used only for external validation/business profiling."]
+    summary.write_text("\n".join(lines), encoding="utf-8")
+    logger.info("Saved final summary")
+    logger.info("END clustering pipeline")
+    return ranked, selected
 
 
 if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        description="Benchmark Telco clustering algorithms."
-    )
-    parser.add_argument(
-        "--data",
-        default="data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv",
-    )
-    parser.add_argument(
-        "--output",
-        default="reports/figures",
-    )
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data", default="data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv")
+    parser.add_argument("--output", default="reports/figures")
     args = parser.parse_args()
-
     results, selected = run_clustering(args.data, args.output)
-
     print("\n=== BEST CONFIGURATION BY ALGORITHM ===")
-    for algorithm, row in selected.items():
-        print(
-            f"{algorithm:12s} | {row['parameters']:35s} | "
-            f"silhouette={row['silhouette']:.4f}"
-        )
-
-    print("\n=== TOP 10 CONFIGURATIONS ===")
-    columns = [
-        "algorithm",
-        "parameters",
-        "silhouette",
-        "noise_ratio",
-        "ARI_vs_Churn",
-        "NMI_vs_Churn",
-    ]
-    available = [c for c in columns if c in results.columns]
-    print(results[available].head(10).to_string(index=False))
+    for alg, r in selected.items():
+        print(f"{alg:12s} | {r['parameters']:32s} | silhouette={r['silhouette']:.4f}")
+    print("\n=== TOP 10 ===")
+    cols = ["algorithm","parameters","silhouette","noise_ratio","ARI_vs_Churn","NMI_vs_Churn"]
+    print(results[[c for c in cols if c in results.columns]].head(10).to_string(index=False))
