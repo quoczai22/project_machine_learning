@@ -21,7 +21,6 @@ X, _ = split_features_target(df_clean)
 preprocessor = build_classification_preprocessor(X)
 X_scaled = preprocessor.fit_transform(X)
 
-# Ép X_scaled về dạng dense numpy array để tránh lỗi SciPy trên Python 3.14
 if hasattr(X_scaled, "toarray"):
     X_scaled = X_scaled.toarray()
 
@@ -39,11 +38,13 @@ print(f"Silhouette Score Hierarchical (k=2): {score_hier:.4f}")
 pca = PCA(n_components=2)
 X_pca = pca.fit_transform(X_scaled)
 
-Path("reports/figures").mkdir(parents=True, exist_ok=True)
+fig_dir = Path("reports/figures")
+fig_dir.mkdir(parents=True, exist_ok=True)
+
 plt.figure(figsize=(8, 5))
 plt.scatter(X_pca[:, 0], X_pca[:, 1], c=kmeans.labels_, cmap='viridis', alpha=0.5)
 plt.title("PCA K-Means Clustering (k=2)")
-plt.savefig("reports/figures/pca_kmeans.png")
+plt.savefig(fig_dir / "pca_kmeans.png")
 plt.close()
 
-print("Đã tạo biểu đồ phân cụm tại reports/figures/pca_kmeans.png")
+print(f"Đã tạo biểu đồ phân cụm tại {fig_dir / 'pca_kmeans.png'}")
