@@ -1,39 +1,25 @@
-"""Unit tests phòng chống Data Leakage và kiểm tra tính hợp lệ của dữ liệu thô."""
+"""Tests enforcing use of the paired preprocessing outputs from member 2."""
 
-import os
 from pathlib import Path
-import pandas as pd
-import pytest
 
-from src.experiments import run_classification_experiments
+from src.experiments import load_preprocessed_splits
 
-# Thư mục gốc dự án
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Đường dẫn chính xác tới file trong data/raw/
-DATA_FILE = BASE_DIR / "data" / "raw" / "WA_Fn-UseC_-Telco-Customer-Churn.csv"
 
-# Dự phòng nếu file nằm ở gốc
-if not DATA_FILE.exists():
-    DATA_FILE = BASE_DIR / "WA_Fn-UseC_-Telco-Customer-Churn.csv"
+def test_preprocessed_train_test_pair_is_complete_and_aligned():
+    """The fixed 80/20 pair must be used directly, never split a second time."""
+    train_path = BASE_DIR / "data" / "processed" / "Train_Data.csv"
+    test_path = BASE_DIR / "data" / "processed" / "Test_Data.csv"
+    X_train, X_test, y_train, y_test = load_preprocessed_splits(
+        str(train_path), str(test_path)
+    )
 
-
-def test_no_data_leakage_in_preprocessing():
-    """Đảm bảo dữ liệu chưa bị scale/one-hot trước khi train_test_split."""
-    assert DATA_FILE.exists(), f"Không tìm thấy file dữ liệu gốc tại: {DATA_FILE}"
-
-    df_raw = pd.read_csv(DATA_FILE)
-
-    # Kiểm tra các cột gốc
-    assert "Contract" in df_raw.columns
-    assert "InternetService" in df_raw.columns
-    assert "Contract_OneYear" not in df_raw.columns
-    assert df_raw["MonthlyCharges"].max() > 10.0
-
-
-def test_experiment_output_pipeline():
-    """Kiểm tra luồng xuất file kết quả CSV duy nhất."""
-    df_results = run_classification_experiments(data_path=str(DATA_FILE))
-    assert isinstance(df_results, pd.DataFrame)
-    assert len(df_results) == 2
-    assert "F1_Score" in df_results.columns
+    assert len(X_train) == 5634
+    assert len(X_test) == 1409
+    assert len(X_train) + len(X_test) == 7043
+    assert list(X_train.columns) == list(X_test.columns)
+    assert "customerID" not in X_train.columns
+    assert set(y_train.unique()).issubset({0, 1})
+    assert set(y_test.unique()).issubset({0, 1})
