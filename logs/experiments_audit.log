@@ -13,3 +13,24 @@
 2026-08-29 16:18:56 - [INFO] - Mô hình: RANDOM_FOREST | Params: {'classifier__max_depth': 10, 'classifier__min_samples_split': 5, 'classifier__n_estimators': 200} | Accuracy: 0.7675 | Precision: 0.5437 | Recall: 0.7692 | F1: 0.6371
 2026-08-29 16:18:56 - [INFO] - [LƯU THÀNH CÔNG] Bảng kết quả metrics lưu tại: data/processed/classification_results.csv
 2026-08-29 16:18:56 - [INFO] - ============================================================
+2026-09-01 09:52:48 - [INFO] - ============================================================
+2026-09-01 09:52:48 - [INFO] - KHI BẮT ĐẦU THỰC NGHIỆM PHÂN LỚP KHÔNG RÒ RỈ DỮ LIỆU (NO LEAKAGE)
+2026-09-01 09:52:48 - [INFO] - ============================================================
+2026-09-01 09:52:48 - [INFO] - Đã đọc dữ liệu thành công: 5634 dòng, 32 cột.
+2026-09-01 09:52:48 - [INFO] - Đang huấn luyện mô hình: Logistic Regression...
+2026-09-01 09:52:49 - [INFO] - Đang huấn luyện mô hình: Random Forest Classifier...
+2026-09-01 09:52:57 - [INFO] - Đã lưu kết quả tại: data/processed/classification_results.csv
+2026-09-01 09:54:40 - [INFO] - ============================================================
+2026-09-01 09:54:40 - [INFO] - KHI BẮT ĐẦU THỰC NGHIỆM PHÂN LỚP KHÔNG RÒ RỈ DỮ LIỆU (NO LEAKAGE)
+2026-09-01 09:54:40 - [INFO] - ============================================================
+2026-09-01 09:54:40 - [INFO] - Đã đọc dữ liệu thành công: 5634 dòng, 32 cột.
+2026-09-01 09:54:40 - [INFO] - Đang huấn luyện mô hình: Logistic Regression...
+2026-09-01 09:54:41 - [INFO] - Đang huấn luyện mô hình: Random Forest Classifier...
+2026-09-01 09:54:50 - [INFO] - Đã lưu kết quả tại: data/processed/classification_results.csv
+2026-09-01 09:56:32 - [INFO] - ============================================================
+2026-09-01 09:56:32 - [INFO] - KHI BẮT ĐẦU THỰC NGHIỆM PHÂN LỚP KHÔNG RÒ RỈ DỮ LIỆU (NO LEAKAGE)
+2026-09-01 09:56:32 - [INFO] - ============================================================
+2026-09-01 09:56:32 - [INFO] - Đã đọc dữ liệu thành công: 7043 dòng, 21 cột.
+2026-09-01 09:56:32 - [INFO] - Đang huấn luyện mô hình: Logistic Regression...
+2026-09-01 09:56:33 - [INFO] - Đang huấn luyện mô hình: Random Forest Classifier...
+2026-09-01 09:56:43 - [INFO] - Đã lưu kết quả tại: data/processed/classification_results.csv
