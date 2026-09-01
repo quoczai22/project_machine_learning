@@ -58,6 +58,15 @@ python -m pip install -r requirements.txt
 python -m pytest
 ```
 
+## Du lieu classification da chot
+
+Classification dung cap file da tien xu ly cua thanh vien 2:
+`data/processed/Train_Data.csv` (5.634 dong) va
+`data/processed/Test_Data.csv` (1.409 dong). Hai file la mot cap split 80/20
+da co dinh; `src/experiments.py` dung truc tiep cap nay va khong split, scale
+hay one-hot encode lan nua. GridSearchCV dung `scoring="f1"`; cac model dung
+`random_state=42` va `class_weight="balanced"`.
+
 Khi cac module da duoc trien khai, pipeline se chay theo thu tu:
 
 ```text
