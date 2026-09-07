@@ -19,7 +19,8 @@ Bai tap nhom mon Hoc may - HUIT. Du an du doan khach hang roi bo dich vu
 telco-churn-project/
 ├── data/
 │   ├── raw/WA_Fn-UseC_-Telco-Customer-Churn.csv
-│   └── processed/telco_train_data.csv
+│   ├── working_raw_7043.csv
+│   └── processed/Train_Data.csv, Test_Data.csv
 ├── src/
 │   ├── data_loader.py
 │   ├── preprocessor.py
@@ -73,9 +74,9 @@ Khi cac module da duoc trien khai, pipeline se chay theo thu tu:
 data_loader -> preprocessor -> classification / clustering -> evaluator
 ```
 
-## Chay lai clustering tren nhanh test_4
+## Chay lai clustering
 
-Nhanh nay dung mot bo input rieng va thong nhat quy trinh: quet `k = 2..6`
+Clustering dung mot bo input rieng va thong nhat quy trinh: quet `k = 2..6`
 cho K-Means va Hierarchical, sau do phan tich cuoi voi `k = 4`. File input
 `data/working_raw_7043.csv` co 7.043 dong va chua bi scale; StandardScaler
 duoc fit trong `src/clustering.py`.
@@ -84,6 +85,27 @@ duoc fit trong `src/clustering.py`.
 python -m src.clustering --data data/working_raw_7043.csv --out reports --k 4
 python -m pytest tests/test_clustering.py -q
 ```
+
+## Ket qua da chot
+
+### Classification
+
+| Model | Accuracy | Precision | Recall | F1 |
+|---|---:|---:|---:|---:|
+| Logistic Regression | 0.7424 | 0.5096 | 0.7834 | 0.6175 |
+| Random Forest | 0.7530 | 0.5236 | 0.7701 | 0.6234 |
+
+GridSearchCV dung 5-fold cross-validation va `scoring="f1"`. Random Forest
+duoc chon theo F1 cao nhat; Logistic Regression co Recall cao hon.
+
+### Clustering
+
+K-Means va Hierarchical duoc danh gia voi k = 2..6. Silhouette cao nhat cua
+K-Means la k = 2 (0.4255); nhom chon K-Means k = 4 (0.4212) de co bon phan
+khuc de dien giai hon. Tai k = 4, Hierarchical dat 0.3457.
+
+Bang chung nghiem thu clustering nam tai `reports/qa/NGHIEM_THU_CLUSTERING.md`;
+log test ghi nhan `2 passed` nam tai `reports/qa/pytest_clustering.txt`.
 
 ## Hop dong interface giua cac module
 
@@ -170,15 +192,11 @@ def build_service_count(df: pd.DataFrame) -> pd.Series:
 def select_cluster_features(df: pd.DataFrame) -> pd.DataFrame:
     """Tra ve tenure, MonthlyCharges va service_count da lam sach, chua scale."""
 
-def evaluate_cluster_candidates(
-    X_scaled: pd.DataFrame, k_values: range = range(2, 9), random_state: int = 42
-) -> pd.DataFrame:
+def evaluate(data: pd.DataFrame, k_values: range = range(2, 7)):
     """Tra ve inertia va silhouette cua KMeans va Hierarchical cho moi k."""
 
-def fit_cluster_models(
-    X_scaled: pd.DataFrame, n_clusters: int, random_state: int = 42
-) -> dict[str, object]:
-    """Fit KMeans va AgglomerativeClustering, tra ve model va labels."""
+def fit_selected(data: pd.DataFrame, k: int = 4):
+    """Fit KMeans va Hierarchical cho k duoc chon."""
 ```
 
 So cum duoc chon tu bang ket qua (khong chon tuy y). `service_count` can dem cac
