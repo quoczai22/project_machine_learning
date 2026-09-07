@@ -73,6 +73,18 @@ Khi cac module da duoc trien khai, pipeline se chay theo thu tu:
 data_loader -> preprocessor -> classification / clustering -> evaluator
 ```
 
+## Chay lai clustering tren nhanh test_4
+
+Nhanh nay dung mot bo input rieng va thong nhat quy trinh: quet `k = 2..6`
+cho K-Means va Hierarchical, sau do phan tich cuoi voi `k = 4`. File input
+`data/working_raw_7043.csv` co 7.043 dong va chua bi scale; StandardScaler
+duoc fit trong `src/clustering.py`.
+
+```bash
+python -m src.clustering --data data/working_raw_7043.csv --out reports --k 4
+python -m pytest tests/test_clustering.py -q
+```
+
 ## Hop dong interface giua cac module
 
 Tat ca ham cong khai phai co docstring, type hints va khong doc/ghi file an

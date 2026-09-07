@@ -1,75 +1,31 @@
 import numpy as np
 import pandas as pd
+import pytest
 
-from src.clustering import (
-    build_service_count,
-    evaluate_cluster_candidates,
-    evaluate_dbscan_candidates,
-    scale_cluster_features,
-    select_cluster_features,
-)
+from src.clustering import FEATURES, evaluate, fit_selected
 
 
-def make_telco_sample():
-    return pd.DataFrame(
-        {
-            "tenure": [1, 12, 60, 24, 48, 3],
-            "MonthlyCharges": [30, 45, 100, 80, 95, 25],
-            "PhoneService": ["No", "Yes", "Yes", "Yes", "Yes", "No"],
-            "MultipleLines": ["No phone service", "No", "Yes", "No", "Yes", "No phone service"],
-            "OnlineSecurity": ["No", "No", "Yes", "Yes", "No", "No"],
-            "OnlineBackup": ["No", "Yes", "Yes", "No", "Yes", "No"],
-            "DeviceProtection": ["No", "No", "Yes", "No", "Yes", "No"],
-            "TechSupport": ["No", "No", "Yes", "Yes", "Yes", "No"],
-            "StreamingTV": ["No", "No", "Yes", "Yes", "Yes", "No"],
-            "StreamingMovies": ["No", "No", "Yes", "No", "Yes", "No"],
-        }
-    )
+def make_data(n=7043):
+    rng = np.random.default_rng(42)
+    return pd.DataFrame({
+        "customerID": [f"C{i:04d}" for i in range(n)],
+        "tenure": rng.integers(0, 73, n),
+        "MonthlyCharges": rng.uniform(18.25, 118.75, n),
+        "service_count": rng.integers(0, 9, n),
+    })
 
 
-def test_service_count_only_counts_yes():
-    df = make_telco_sample()
-    counts = build_service_count(df)
-    assert counts.tolist() == [0, 2, 8, 4, 7, 0]
+def test_evaluate_returns_both_algorithms():
+    X, metrics = evaluate(make_data(), k_values=range(2, 5))
+    assert X.shape == (7043, 3)
+    assert set(metrics.algorithm) == {"KMeans", "Hierarchical"}
+    assert set(metrics.k) == {2, 3, 4}
+    assert metrics.silhouette.between(-1, 1).all()
 
 
-def test_select_and_scale_cluster_features():
-    df = make_telco_sample()
-    features = select_cluster_features(df)
-    assert list(features.columns) == [
-        "tenure",
-        "MonthlyCharges",
-        "service_count",
-    ]
-
-    scaled, scaler = scale_cluster_features(features)
-    assert scaled.shape == (6, 3)
-    assert np.allclose(scaled.mean(axis=0), 0.0)
-    assert scaler.mean_.shape == (3,)
-
-
-def test_candidate_evaluation_returns_kmeans_and_hierarchical():
-    df = make_telco_sample()
-    features = select_cluster_features(df)
-    scaled, _ = scale_cluster_features(features)
-    result = evaluate_cluster_candidates(scaled, k_values=range(2, 4))
-
-    assert set(result["algorithm"]) == {"KMeans", "Hierarchical"}
-    assert len(result) == 4
-    assert result["silhouette"].notna().all()
-
-
-def test_dbscan_evaluation_has_required_columns():
-    df = make_telco_sample()
-    features = select_cluster_features(df)
-    scaled, _ = scale_cluster_features(features)
-    result = evaluate_dbscan_candidates(
-        scaled,
-        eps_values=(0.5,),
-        min_samples_values=(2, 3),
-    )
-
-    assert len(result) == 2
-    assert set(["algorithm", "parameters", "silhouette", "noise_ratio"]).issubset(
-        result.columns
-    )
+def test_fit_selected_has_expected_labels():
+    result, comparison, X = fit_selected(make_data(), k=4)
+    assert result.shape[0] == 7043
+    assert result.cluster_kmeans.nunique() == 4
+    assert result.cluster_hierarchical.nunique() == 4
+    assert comparison.shape == (2, 3)
