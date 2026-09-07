@@ -2,7 +2,7 @@
 
 ## Pham vi kiem tra
 
-- Nhanh: `test_4`
+- Nhanh hien tai: `feature-result` (ket qua da duoc merge tu nhanh kiem thu).
 - Input: `data/working_raw_7043.csv`
 - So dong input: 7.043
 - Feature dua vao clustering: `tenure`, `MonthlyCharges`, `service_count`
