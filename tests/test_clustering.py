@@ -29,3 +29,8 @@ def test_fit_selected_has_expected_labels():
     assert result.cluster_kmeans.nunique() == 4
     assert result.cluster_hierarchical.nunique() == 4
     assert comparison.shape == (2, 3)
+
+
+def test_customer_id_and_churn_are_not_clustering_features():
+    """Identifiers and labels must never enter unsupervised model features."""
+    assert set(FEATURES).isdisjoint({"customerID", "Churn"})

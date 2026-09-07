@@ -1,5 +1,6 @@
 """Tests enforcing use of the paired preprocessing outputs from member 2."""
 
+import json
 from pathlib import Path
 
 from src.experiments import load_preprocessed_splits
@@ -23,3 +24,16 @@ def test_preprocessed_train_test_pair_is_complete_and_aligned():
     assert "customerID" not in X_train.columns
     assert set(y_train.unique()).issubset({0, 1})
     assert set(y_test.unique()).issubset({0, 1})
+
+
+def test_split_metadata_records_leakage_safe_provenance():
+    """The exported pair must document its split and fit-only-on-train rules."""
+    metadata_path = BASE_DIR / "data" / "processed" / "classification_split_metadata.json"
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    assert metadata["source_rows"] == 7043
+    assert metadata["train_rows"] == 5634
+    assert metadata["test_rows"] == 1409
+    assert metadata["random_state"] == 42
+    assert metadata["stratify"] == "Churn"
+    assert metadata["scaler_fit_on"] == "Train_Data only"
+    assert metadata["encoder_fit_on"] == "Train_Data only"

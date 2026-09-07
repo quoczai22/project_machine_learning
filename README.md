@@ -68,6 +68,18 @@ da co dinh; `src/experiments.py` dung truc tiep cap nay va khong split, scale
 hay one-hot encode lan nua. GridSearchCV dung `scoring="f1"`; cac model dung
 `random_state=42` va `class_weight="balanced"`.
 
+Cap file nay duoc tao lai tu raw CSV bang lenh sau de co the kiem tra quy
+trinh: split 80/20 voi `random_state=42`, `stratify=Churn`; imputer, scaler va
+encoder chi `fit` tren Train va chi `transform` Test.
+
+```bash
+python -m src.prepare_classification_data
+python -m src.experiments
+python -m pytest tests/test_leakage.py -q
+```
+
+Metadata tai tao nam tai `data/processed/classification_split_metadata.json`.
+
 Khi cac module da duoc trien khai, pipeline se chay theo thu tu:
 
 ```text

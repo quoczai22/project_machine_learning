@@ -39,15 +39,19 @@ Hai test kiem tra:
 
 ## Ket qua chay tren du lieu 7.043 dong
 
-| Thuật toán | k | Silhouette |
-|---|---:|---:|
-| K-Means | 2 | 0.4255 |
-| K-Means | 4 | 0.4212 |
-| Hierarchical | 4 | 0.3457 |
+| k | K-Means Silhouette | Hierarchical Silhouette |
+|---:|---:|---:|
+| 2 | 0.4255 | 0.4037 |
+| 3 | 0.4055 | 0.3323 |
+| 4 | 0.4212 | 0.3457 |
+| 5 | 0.3835 | 0.3478 |
+| 6 | 0.3950 | 0.3284 |
 
-K-Means k = 4 cao hon Hierarchical k = 4. Du k = 2 co Silhouette cao nhat,
-chenh lech voi k = 4 la nho; k = 4 duoc chon de tao bon phan khuc khach hang
-co y nghia de dien giai.
+K-Means k = 4 cao hon Hierarchical k = 4. Tai k = 2, K-Means chi chia thanh
+hai nhom tong quat: nhom tenure 46.54 thang, phi 89.44 va 5.28 dich vu; va
+nhom tenure 20.89 thang, phi 44.77 va 1.81 dich vu. Du k = 2 co Silhouette cao
+nhat, chenh lech voi k = 4 la nho; k = 4 tach them cac nhom lau nam/chi cao,
+lau nam/chi thap, moi/chi cao va moi/chi thap de co insight kinh doanh cu the.
 
 SHA-256 cua `reports/clustering_metrics.csv`:
 `047B8A6F8F39224A44536429D6C1A33DDEF5543010100037F20985EA5C11D356`.
