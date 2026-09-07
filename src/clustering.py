@@ -47,7 +47,7 @@ def load_data(path: str | Path) -> pd.DataFrame:
     return data
 
 
-def evaluate(data: pd.DataFrame, k_values=range(2, 7), random_state=42):
+def evaluate(data: pd.DataFrame, k_values=range(2, 11), random_state=42):
     X = StandardScaler().fit_transform(data[FEATURES])
     rows = []
     for k in k_values:

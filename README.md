@@ -75,7 +75,7 @@ data_loader -> preprocessor -> classification / clustering -> evaluator
 
 ## Chay lai clustering tren nhanh test_4
 
-Nhanh nay dung mot bo input rieng va thong nhat quy trinh: quet `k = 2..6`
+Nhanh nay dung mot bo input rieng va thong nhat quy trinh: quet `k = 2..10`
 cho K-Means va Hierarchical, sau do phan tich cuoi voi `k = 4`. File input
 `data/working_raw_7043.csv` co 7.043 dong va chua bi scale; StandardScaler
 duoc fit trong `src/clustering.py`.
