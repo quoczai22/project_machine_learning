@@ -58,3 +58,15 @@
 2026-09-01 20:33:44 - [INFO] - [LƯU THÀNH CÔNG] Confusion matrix lưu tại: reports/figures\cm_logistic_regression.png
 2026-09-01 20:33:45 - [INFO] - [LƯU THÀNH CÔNG] Confusion matrix lưu tại: reports/figures\cm_random_forest_classifier.png
 2026-09-01 20:33:45 - [INFO] - ============================================================
+2026-09-08 22:01:45 - [INFO] - ============================================================
+2026-09-08 22:01:45 - [INFO] - BẮT ĐẦU THỰC NGHIỆM PHÂN LỚP (CLASSIFICATION EXPERIMENT)
+2026-09-08 22:01:45 - [INFO] - ============================================================
+2026-09-08 22:01:45 - [INFO] - Đã tải dữ liệu | Train: 5634 dòng | Test: 1409 dòng
+2026-09-08 22:01:45 - [INFO] - Đang tối ưu mô hình: Logistic Regression (GridSearchCV)...
+2026-09-08 22:01:54 - [INFO] - Mô hình: LOGISTIC REGRESSION | Time: 8.72s | Params: {'C': 0.1, 'solver': 'lbfgs'} | CV_F1: 0.6335 | Acc: 0.7424 | Prec: 0.5096 | Rec: 0.7834 | F1: 0.6175
+2026-09-08 22:01:54 - [INFO] - Đang tối ưu mô hình: Random Forest Classifier (GridSearchCV)...
+2026-09-08 22:02:10 - [INFO] - Mô hình: RANDOM FOREST CLASSIFIER | Time: 16.26s | Params: {'max_depth': 10, 'min_samples_split': 2, 'n_estimators': 100} | CV_F1: 0.6353 | Acc: 0.7530 | Prec: 0.5236 | Rec: 0.7701 | F1: 0.6234
+2026-09-08 22:02:10 - [INFO] - [LƯU THÀNH CÔNG] Bảng kết quả metrics lưu tại: data/processed/classification_results.csv
+2026-09-08 22:02:12 - [INFO] - [LƯU THÀNH CÔNG] Confusion matrix lưu tại: reports/figures\cm_logistic_regression.png
+2026-09-08 22:02:12 - [INFO] - [LƯU THÀNH CÔNG] Confusion matrix lưu tại: reports/figures\cm_random_forest_classifier.png
+2026-09-08 22:02:12 - [INFO] - ============================================================
