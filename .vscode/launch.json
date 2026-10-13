@@ -1,0 +1,77 @@
+{
+   
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Clustering (src.clustering)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.clustering",
+            "args": [
+                "--data",
+                "data/working_raw_7043.csv",
+                "--out",
+                "reports",
+                "--k",
+                "6"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Prepare Classification Data (src.prepare_classification_data)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.prepare_classification_data",
+            "args": [
+                "--raw",
+                "data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv",
+                "--train",
+                "data/processed/Train_Data.csv",
+                "--test",
+                "data/processed/Test_Data.csv",
+                "--metadata",
+                "data/processed/classification_split_metadata.json"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Classification Experiments (src.experiments)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.experiments",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Test Classification (pytest)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "tests/test_classification.py",
+                "-q"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Test Clustering (pytest)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "tests/test_clustering.py",
+                "-q"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

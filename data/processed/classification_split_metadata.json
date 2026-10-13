@@ -1,0 +1,21 @@
+{
+  "source_file": "data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv",
+  "source_sha256": "88be4b93fbe0cc83421af1c503794c97c342eca914c1576db7c276e61d61358a",
+  "source_rows": 7043,
+  "train_rows": 5634,
+  "test_rows": 1409,
+  "test_size": 0.2,
+  "random_state": 42,
+  "stratify": "Churn",
+  "numeric_imputer_fit_on": "Train_Data only",
+  "scaler_fit_on": "Train_Data only",
+  "categorical_imputer_fit_on": "Train_Data only",
+  "encoder_fit_on": "Train_Data only",
+  "numeric_columns": [
+    "SeniorCitizen",
+    "tenure",
+    "MonthlyCharges",
+    "TotalCharges"
+  ],
+  "encoded_feature_count": 26
+}
