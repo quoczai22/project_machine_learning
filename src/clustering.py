@@ -19,6 +19,7 @@ from sklearn.preprocessing import StandardScaler
 
 FEATURES = ["tenure", "MonthlyCharges", "service_count"]
 ALGORITHMS = ("KMeans", "Hierarchical")
+K_VALUES = range(2, 11)
 
 
 def load_data(path: str | Path) -> pd.DataFrame:
@@ -47,7 +48,7 @@ def load_data(path: str | Path) -> pd.DataFrame:
     return data
 
 
-def evaluate(data: pd.DataFrame, k_values=range(2, 7), random_state=42):
+def evaluate(data: pd.DataFrame, k_values=K_VALUES, random_state=42):
     X = StandardScaler().fit_transform(data[FEATURES])
     rows = []
     for k in k_values:
@@ -87,7 +88,7 @@ def fit_selected(data: pd.DataFrame, k=4, random_state=42):
     return out, comparison, X
 
 
-def save_plots(metrics, X, labels, out_dir: Path):
+def save_plots(metrics, X, labels, out_dir: Path, selected_k: int):
     out_dir.mkdir(parents=True, exist_ok=True)
     km = metrics[metrics.algorithm == "KMeans"]
     hc = metrics[metrics.algorithm == "Hierarchical"]
@@ -122,10 +123,10 @@ def save_plots(metrics, X, labels, out_dir: Path):
         plt.scatter(xp[mask, 0], xp[mask, 1], s=10, label=f"Cụm {c}")
     plt.xlabel("PC1")
     plt.ylabel("PC2")
-    plt.title("K-Means với k=4 (PCA 2D)")
+    plt.title(f"K-Means với k={selected_k} (PCA 2D)")
     plt.legend()
     plt.tight_layout()
-    plt.savefig(out_dir / "pca_kmeans_k4.png", dpi=180)
+    plt.savefig(out_dir / f"pca_kmeans_k{selected_k}.png", dpi=180)
     plt.close()
 
 
@@ -138,13 +139,15 @@ def main():
 
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
+    if args.k not in K_VALUES:
+        raise ValueError("--k phải nằm trong khoảng 2 đến 10")
     data = load_data(args.data)
     X, metrics = evaluate(data)
     result, comparison, X = fit_selected(data, k=args.k)
 
     metrics.to_csv(out_dir / "clustering_metrics.csv", index=False)
     result.to_csv(out_dir / "clustering_result_7043.csv", index=False)
-    comparison.to_csv(out_dir / "algorithm_comparison_k4.csv", index=False)
+    comparison.to_csv(out_dir / f"algorithm_comparison_k{args.k}.csv", index=False)
 
     summary_rows = []
     for alg, col in (("KMeans", "cluster_kmeans"), ("Hierarchical", "cluster_hierarchical")):
@@ -157,8 +160,8 @@ def main():
                 "MonthlyCharges_mean": g.MonthlyCharges.mean(),
                 "service_count_mean": g.service_count.mean(),
             })
-    pd.DataFrame(summary_rows).to_csv(out_dir / "cluster_summary_k4.csv", index=False)
-    save_plots(metrics, X, result["cluster_kmeans"].to_numpy(), out_dir)
+    pd.DataFrame(summary_rows).to_csv(out_dir / f"cluster_summary_k{args.k}.csv", index=False)
+    save_plots(metrics, X, result["cluster_kmeans"].to_numpy(), out_dir, args.k)
 
     print("Hoàn tất clustering.")
     print(comparison.to_string(index=False))

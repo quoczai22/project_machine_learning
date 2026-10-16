@@ -28,6 +28,14 @@ python -m pytest tests/test_leakage.py -q
 Ket qua: `2 passed`. Test kiem tra cap train/test dong bo va metadata bat buoc
 ghi ro split, random state, stratify va fit-on-train.
 
+Test `test_final_confusion_matrices_match_classification_results` trong
+`tests/test_classification.py` khoa them su nhat quan giua bon Confusion Matrix
+(Train/Test x Logistic Regression/Random Forest) va CSV ket qua cuoi. Tren
+Test Data, Logistic Regression co ma tran `[[753, 282], [81, 293]]`; Random
+Forest co ma tran `[[773, 262], [86, 288]]`, theo thu tu `[[TN, FP], [FN, TP]]`.
+Tu cac ma tran nay, Accuracy/Precision/Recall lan luot lam tron thanh
+`0.7424/0.5096/0.7834` va `0.7530/0.5236/0.7701`, khop CSV chinh thuc.
+
 ## Ket qua GridSearchCV
 
 | Model | Best parameters | CV F1 | Accuracy | Precision | Recall | F1 |

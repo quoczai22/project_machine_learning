@@ -2,13 +2,13 @@
 
 ## Pham vi kiem tra
 
-- Nhanh hien tai: `feature-result` (ket qua da duoc merge tu nhanh kiem thu).
+- Nhanh hien tai: `main`.
 - Input: `data/working_raw_7043.csv`
 - So dong input: 7.043
 - Feature dua vao clustering: `tenure`, `MonthlyCharges`, `service_count`
 - Khong dua `customerID` va `Churn` vao model.
 - StandardScaler duoc fit trong `src/clustering.py`, sau khi doc input chua scale.
-- Pham vi danh gia: k = 2..6; phan tich cuoi: k = 4.
+- Pham vi danh gia: k = 2..10; phan tich cuoi: k = 4.
 
 ## Bang chung input
 
@@ -28,14 +28,16 @@ Lenh da chay:
 python -m pytest tests/test_clustering.py -q
 ```
 
-Ket qua: `2 passed`. Log nguyen van nam tai `reports/qa/pytest_clustering.txt`.
+Ket qua: `4 passed`. Log nguyen van nam tai `reports/qa/pytest_clustering.txt`.
 
-Hai test kiem tra:
+Bon test kiem tra:
 
 1. K-Means va Hierarchical deu tra ve ket qua cho cac k yeu cau, Silhouette
    nam trong khoang hop le [-1, 1].
 2. Ket qua k = 4 co dung 4 nhan cum cho ca hai thuat toan va bang so sanh co
    dung hai dong.
+3. `customerID` va `Churn` khong nam trong feature dua vao clustering.
+4. Cau hinh mac dinh quet day du k = 2..10, khong bi lui ve k = 2..6.
 
 ## Ket qua chay tren du lieu 7.043 dong
 
@@ -46,6 +48,10 @@ Hai test kiem tra:
 | 4 | 0.4212 | 0.3457 |
 | 5 | 0.3835 | 0.3478 |
 | 6 | 0.3950 | 0.3284 |
+| 7 | 0.3798 | 0.3206 |
+| 8 | 0.3678 | 0.3078 |
+| 9 | 0.3483 | 0.3122 |
+| 10 | 0.3539 | 0.2984 |
 
 K-Means k = 4 cao hon Hierarchical k = 4. Tai k = 2, K-Means chi chia thanh
 hai nhom tong quat: nhom tenure 46.54 thang, phi 89.44 va 5.28 dich vu; va
@@ -54,14 +60,14 @@ nhat, chenh lech voi k = 4 la nho; k = 4 tach them cac nhom lau nam/chi cao,
 lau nam/chi thap, moi/chi cao va moi/chi thap de co insight kinh doanh cu the.
 
 SHA-256 cua `reports/clustering_metrics.csv`:
-`047B8A6F8F39224A44536429D6C1A33DDEF5543010100037F20985EA5C11D356`.
+`8103D10EFD8BE32AC40DD1484DB8DDE1E066EFCD8B3DA670E6FB733835195363`.
 
 SHA-256 cua `reports/algorithm_comparison_k4.csv`:
 `C4D72CA95747649ABE92837B2889AFE6F1724DA1C8D2AFD8C49830F20981405C`.
 
 ## Artifact doi chieu
 
-- `reports/clustering_metrics.csv`: bang inertia va Silhouette k = 2..6.
+- `reports/clustering_metrics.csv`: bang inertia va Silhouette k = 2..10.
 - `reports/elbow_kmeans.png`: do thi Elbow.
 - `reports/silhouette_compare.png`: so sanh Silhouette hai thuat toan.
 - `reports/pca_kmeans_k4.png`: hinh PCA cua ket qua cuoi.

@@ -23,6 +23,12 @@ def test_evaluate_returns_both_algorithms():
     assert metrics.silhouette.between(-1, 1).all()
 
 
+def test_default_evaluation_covers_k_2_to_10():
+    """The required candidate range must not silently regress to k=2..6."""
+    _, metrics = evaluate(make_data())
+    assert set(metrics.k) == set(range(2, 11))
+
+
 def test_fit_selected_has_expected_labels():
     result, comparison, X = fit_selected(make_data(), k=4)
     assert result.shape[0] == 160

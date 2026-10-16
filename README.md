@@ -88,7 +88,7 @@ data_loader -> preprocessor -> classification / clustering -> evaluator
 
 ## Chay lai clustering
 
-Clustering dung mot bo input rieng va thong nhat quy trinh: quet `k = 2..6`
+Clustering dung mot bo input rieng va thong nhat quy trinh: quet `k = 2..10`
 cho K-Means va Hierarchical, sau do phan tich cuoi voi `k = 4`. File input
 `data/working_raw_7043.csv` co 7.043 dong va chua bi scale; StandardScaler
 duoc fit trong `src/clustering.py`.
@@ -112,7 +112,7 @@ duoc chon theo F1 cao nhat; Logistic Regression co Recall cao hon.
 
 ### Clustering
 
-K-Means va Hierarchical duoc danh gia voi k = 2..6. Silhouette cao nhat cua
+K-Means va Hierarchical duoc danh gia voi k = 2..10. Silhouette cao nhat cua
 K-Means la k = 2 (0.4255); nhom chon K-Means k = 4 (0.4212) de co bon phan
 khuc de dien giai hon. Tai k = 4, Hierarchical dat 0.3457.
 
@@ -204,7 +204,7 @@ def build_service_count(df: pd.DataFrame) -> pd.Series:
 def select_cluster_features(df: pd.DataFrame) -> pd.DataFrame:
     """Tra ve tenure, MonthlyCharges va service_count da lam sach, chua scale."""
 
-def evaluate(data: pd.DataFrame, k_values: range = range(2, 7)):
+def evaluate(data: pd.DataFrame, k_values: range = range(2, 11)):
     """Tra ve inertia va silhouette cua KMeans va Hierarchical cho moi k."""
 
 def fit_selected(data: pd.DataFrame, k: int = 4):
@@ -226,11 +226,8 @@ def classification_metrics(y_true: pd.Series, y_pred: pd.Series) -> dict[str, fl
 def clustering_metrics(X_scaled: pd.DataFrame, labels: pd.Series) -> dict[str, float]:
     """Tinh silhouette_score; raise ValueError neu labels khong hop le."""
 
-def save_confusion_matrix(y_true: pd.Series, y_pred: pd.Series, title: str, output_path: str | Path) -> None:
-    """Luu anh confusion matrix tai output_path."""
-
-def save_feature_importance(fitted_pipeline: object, output_path: str | Path, top_n: int = 15) -> None:
-    """Luu anh feature importance cua Random Forest tai output_path."""
+def clustering_silhouette(features: np.ndarray, labels: np.ndarray) -> float:
+    """Tinh silhouette_score; raise ValueError neu labels khong hop le."""
 ```
 
 ### `src/model_utils.py`
@@ -256,7 +253,7 @@ def save_json(payload: dict, output_path: str | Path) -> None:
 | 2 - Preprocessing | `data_loader.py`, `preprocessor.py` | Data sach, schema validation, test don vi |
 | 3 - Classification | `classification.py` | LR vs RF, GridSearchCV, metrics tai tao duoc |
 | 4 - Clustering | `clustering.py` | KMeans vs Hierarchical, Elbow/Silhouette, phan khuc |
-| 5 - Evaluation & Testing | `evaluator.py`, `tests/` | 100% pytest pass, anh CM va feature importance |
+| 5 - Evaluation & Testing | `evaluator.py`, `tests/` | 100% pytest pass, metric va anh Confusion Matrix |
 | 6 - Report | `report/` | Bao cao chi dung so lieu sinh ra tu pipeline |
 
 ## Moc kiem tra 14 ngay

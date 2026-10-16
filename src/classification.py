@@ -68,6 +68,7 @@ def tune_classifiers(
     y_train: pd.Series,
     cv: int = 5,
     random_state: int = 42,
+    param_grids: Dict[str, Dict[str, list]] | None = None,
 ) -> Dict[str, Dict[str, Any]]:
     """Tìm tham số tối ưu cho Logistic Regression và Random Forest bằng
 
@@ -80,6 +81,8 @@ def tune_classifiers(
         y_train (pd.Series): Nhãn mục tiêu huấn luyện (0/1).
         cv (int): Số fold Cross-Validation.
         random_state (int): Seed phục vụ tái tạo kết quả.
+        param_grids: Optional grids for controlled tests; production uses the
+          documented default grids.
 
     Returns:
         Dict[str, Dict[str, Any]]: Báo cáo chứa best_estimator_, best_params_
@@ -100,20 +103,22 @@ def tune_classifiers(
         "classifier__min_samples_split": [2, 5],
     }
 
-    param_grids = {
+    default_param_grids = {
         "logistic_regression": param_grid_lr,
         "random_forest": param_grid_rf,
     }
+    selected_grids = param_grids or default_param_grids
 
     tuned_results: Dict[str, Dict[str, Any]] = {}
 
     for model_name, pipeline in pipelines.items():
         grid_search = GridSearchCV(
             estimator=pipeline,
-            param_grid=param_grids[model_name],
+            param_grid=selected_grids[model_name],
             cv=cv,
             scoring="f1",
-            n_jobs=-1,
+            # Keep the reusable module reliable on student laptops and in tests.
+            n_jobs=1,
         )
 
         grid_search.fit(X_train, y_train)
