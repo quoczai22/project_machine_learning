@@ -8,6 +8,9 @@ Bai tap nhom mon Hoc may - HUIT. Du an du doan khach hang roi bo dich vu
 - Phan lop: Logistic Regression va Random Forest, co `class_weight="balanced"`.
 - Gom cum: KMeans va Hierarchical Clustering; so cum duoc chon bang Elbow va/
   hoac Silhouette Score.
+- Luat ket hop (dang thuc hien tren nhanh tinh nang): Apriori va FP-Growth tim
+  cac to hop dich vu/hanh vi lien he voi `Churn=Yes`; danh gia bang Support,
+  Confidence va Lift.
 - Khong su dung Deep Learning hay bat ky thu vien `tensorflow`, `torch`, `keras`.
 - `TotalCharges` phai duoc chuyen bang `pd.to_numeric(errors="coerce")` va
   impute median. `customerID` khong duoc dua vao feature.
@@ -30,13 +33,15 @@ telco-churn-project/
 │   ├── preprocessor.py
 │   ├── classification.py
 │   ├── clustering.py
+│   ├── association_data.py
+│   ├── association_rules.py
 │   ├── evaluator.py
 │   ├── experiments.py
 │   └── prepare_classification_data.py
 ├── tests/
 ├── reports/
-│   ├── figures/eda|classification|clustering/
-│   ├── metrics/classification|clustering/
+│   ├── figures/eda|classification|clustering|association_rules/
+│   ├── metrics/classification|clustering|association_rules/
 │   └── qa/
 ├── requirements.txt
 └── README.md
@@ -104,6 +109,25 @@ python -m src.clustering --data data/interim/working_raw_7043.csv --out reports 
 python -m pytest tests/test_clustering.py -q
 ```
 
+## Chay luat ket hop (nhanh `feature/explain-apriori-fpgrowth`)
+
+Luat ket hop dung toan bo du lieu Telco da lam sach theo quy tac giao dich,
+khong phai bai toan du doan nen khong chia train/test va khong dung Accuracy/F1.
+`customerID` bi loai; `tenure` va `MonthlyCharges` duoc chia thanh khoang de
+tao item. Script chi cong bo luat co consequent `Churn=Yes`.
+
+```bash
+python -m src.association_rules \
+  --data data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv \
+  --out reports --min-support 0.05 --min-confidence 0.40 --min-lift 1.0
+python -m pytest tests/test_association_data.py tests/test_association_rules.py -q
+```
+
+Ket qua luat nam trong `reports/metrics/association_rules/`; bieu do Lift nam
+trong `reports/figures/association_rules/`. `algorithm_comparison.csv` so sanh
+Apriori va FP-Growth theo so frequent itemsets, so luat dat dieu kien va thoi
+gian chay tren cung du lieu/cung nguong.
+
 ## Ket qua da chot
 
 ### Classification
@@ -130,7 +154,9 @@ log clustering ghi nhan `4 passed` nam tai `reports/qa/pytest_clustering.txt`.
 - `reports/figures/eda/`: hinh kham pha du lieu.
 - `reports/figures/classification/`: Confusion Matrix va hinh phan lop.
 - `reports/figures/clustering/`: Elbow, Silhouette va PCA.
-- `reports/metrics/classification/` va `reports/metrics/clustering/`: CSV ket qua.
+- `reports/figures/association_rules/`: bieu do cac luat Churn tieu bieu.
+- `reports/metrics/classification/`, `reports/metrics/clustering/` va
+  `reports/metrics/association_rules/`: CSV ket qua.
 - `reports/qa/`: bien ban va log nghiem thu; khong dung lam input model.
 
 ## Hop dong interface giua cac module
