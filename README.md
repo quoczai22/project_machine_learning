@@ -18,20 +18,26 @@ Bai tap nhom mon Hoc may - HUIT. Du an du doan khach hang roi bo dich vu
 ```text
 telco-churn-project/
 ├── data/
-│   ├── raw/WA_Fn-UseC_-Telco-Customer-Churn.csv
-│   ├── working_raw_7043.csv
-│   └── processed/Train_Data.csv, Test_Data.csv
+│   ├── raw/                         # CSV Telco goc
+│   ├── interim/                     # input 7.043 dong cho clustering
+│   └── processed/                   # Train/Test da tien xu ly va metadata
+├── docs/
+│   └── archive/                     # README cu, khong dung de chay
+├── notebooks/
+│   └── EDA.ipynb                    # EDA va tao hinh EDA
 ├── src/
 │   ├── data_loader.py
 │   ├── preprocessor.py
 │   ├── classification.py
 │   ├── clustering.py
 │   ├── evaluator.py
-│   └── model_utils.py
+│   ├── experiments.py
+│   └── prepare_classification_data.py
 ├── tests/
-├── notebooks/EDA.ipynb
 ├── reports/
-│   └── figures/
+│   ├── figures/eda|classification|clustering/
+│   ├── metrics/classification|clustering/
+│   └── qa/
 ├── requirements.txt
 └── README.md
 ```
@@ -90,11 +96,11 @@ data_loader -> preprocessor -> classification / clustering -> evaluator
 
 Clustering dung mot bo input rieng va thong nhat quy trinh: quet `k = 2..10`
 cho K-Means va Hierarchical, sau do phan tich cuoi voi `k = 4`. File input
-`data/working_raw_7043.csv` co 7.043 dong va chua bi scale; StandardScaler
+`data/interim/working_raw_7043.csv` co 7.043 dong va chua bi scale; StandardScaler
 duoc fit trong `src/clustering.py`.
 
 ```bash
-python -m src.clustering --data data/working_raw_7043.csv --out reports --k 4
+python -m src.clustering --data data/interim/working_raw_7043.csv --out reports --k 4
 python -m pytest tests/test_clustering.py -q
 ```
 
@@ -117,7 +123,15 @@ K-Means la k = 2 (0.4255); nhom chon K-Means k = 4 (0.4212) de co bon phan
 khuc de dien giai hon. Tai k = 4, Hierarchical dat 0.3457.
 
 Bang chung nghiem thu clustering nam tai `reports/qa/NGHIEM_THU_CLUSTERING.md`;
-log test ghi nhan `2 passed` nam tai `reports/qa/pytest_clustering.txt`.
+log clustering ghi nhan `4 passed` nam tai `reports/qa/pytest_clustering.txt`.
+
+## Quy uoc artifact
+
+- `reports/figures/eda/`: hinh kham pha du lieu.
+- `reports/figures/classification/`: Confusion Matrix va hinh phan lop.
+- `reports/figures/clustering/`: Elbow, Silhouette va PCA.
+- `reports/metrics/classification/` va `reports/metrics/clustering/`: CSV ket qua.
+- `reports/qa/`: bien ban va log nghiem thu; khong dung lam input model.
 
 ## Hop dong interface giua cac module
 

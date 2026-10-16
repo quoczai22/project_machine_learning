@@ -137,17 +137,20 @@ def main():
     parser.add_argument("--k", type=int, default=4)
     args = parser.parse_args()
 
-    out_dir = Path(args.out)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    report_dir = Path(args.out)
+    metrics_dir = report_dir / "metrics" / "clustering"
+    figures_dir = report_dir / "figures" / "clustering"
+    metrics_dir.mkdir(parents=True, exist_ok=True)
+    figures_dir.mkdir(parents=True, exist_ok=True)
     if args.k not in K_VALUES:
         raise ValueError("--k phải nằm trong khoảng 2 đến 10")
     data = load_data(args.data)
     X, metrics = evaluate(data)
     result, comparison, X = fit_selected(data, k=args.k)
 
-    metrics.to_csv(out_dir / "clustering_metrics.csv", index=False)
-    result.to_csv(out_dir / "clustering_result_7043.csv", index=False)
-    comparison.to_csv(out_dir / f"algorithm_comparison_k{args.k}.csv", index=False)
+    metrics.to_csv(metrics_dir / "clustering_metrics.csv", index=False)
+    result.to_csv(metrics_dir / "clustering_result_7043.csv", index=False)
+    comparison.to_csv(metrics_dir / f"algorithm_comparison_k{args.k}.csv", index=False)
 
     summary_rows = []
     for alg, col in (("KMeans", "cluster_kmeans"), ("Hierarchical", "cluster_hierarchical")):
@@ -160,8 +163,10 @@ def main():
                 "MonthlyCharges_mean": g.MonthlyCharges.mean(),
                 "service_count_mean": g.service_count.mean(),
             })
-    pd.DataFrame(summary_rows).to_csv(out_dir / f"cluster_summary_k{args.k}.csv", index=False)
-    save_plots(metrics, X, result["cluster_kmeans"].to_numpy(), out_dir, args.k)
+    pd.DataFrame(summary_rows).to_csv(
+        metrics_dir / f"cluster_summary_k{args.k}.csv", index=False
+    )
+    save_plots(metrics, X, result["cluster_kmeans"].to_numpy(), figures_dir, args.k)
 
     print("Hoàn tất clustering.")
     print(comparison.to_string(index=False))

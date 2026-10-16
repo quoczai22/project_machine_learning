@@ -131,7 +131,7 @@ def test_final_confusion_matrices_match_classification_results():
     """Lock the final Train/Test confusion matrices to the approved CSV metrics."""
     X_train, X_test, y_train, y_test = load_preprocessed_splits()
     results = pd.read_csv(
-        Path("data/processed/classification_results.csv")
+        Path("reports/metrics/classification/classification_results.csv")
     ).set_index("Model")
 
     models = {

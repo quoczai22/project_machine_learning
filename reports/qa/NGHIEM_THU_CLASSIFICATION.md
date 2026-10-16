@@ -45,4 +45,5 @@ Tu cac ma tran nay, Accuracy/Precision/Recall lan luot lam tron thanh
 
 GridSearchCV dung 5 fold, `scoring="f1"`; ca hai model dung
 `class_weight="balanced"`, `random_state=42`. CSV va Confusion Matrix nam tai
-`data/processed/classification_results.csv` va `reports/figures/`.
+`reports/metrics/classification/classification_results.csv` va
+`reports/figures/classification/`.

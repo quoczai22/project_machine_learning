@@ -2,4 +2,5 @@
 .pytest_cache/
 __pycache__/
 *.py[cod]
-reports/figures/*.png
+logs/*.log
+classification_audit.log

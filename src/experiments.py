@@ -77,8 +77,8 @@ def load_preprocessed_splits(
 def run_classification_experiments(
     train_path: str = TRAIN_PATH,
     test_path: str = TEST_PATH,
-    output_path: str = "data/processed/classification_results.csv",
-    figures_dir: str = "reports/figures",
+    output_path: str = "reports/metrics/classification/classification_results.csv",
+    figures_dir: str = "reports/figures/classification",
 ) -> pd.DataFrame:
     """Tune on Train_Data and report final metrics on the paired Test_Data."""
     logger = setup_logger()
