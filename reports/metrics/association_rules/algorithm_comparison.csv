@@ -1,0 +1,2 @@
+algorithm,frequent_itemsets,churn_rules,runtime_seconds
+Apriori,6850,127,0.1714103000012983
