@@ -13,6 +13,7 @@ import os
 import sys
 import time
 
+# pyrefly: ignore[missing-import]
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

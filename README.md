@@ -6,6 +6,7 @@ Bài tập nhóm môn Học máy - HUIT. Dự án dự đoán khách hàng rời
 
 - Phân lớp: Logistic Regression và Random Forest, có `class_weight="balanced"`.
 - Gom cụm: KMeans và Hierarchical Clustering; số cụm được chọn bằng Elbow và/hoặc Silhouette Score.
+- Khai phá luật kết hợp: Apriori và FP-Growth so sánh thời gian chạy (runtime) và khai phá các luật liên quan đến `Churn=Yes` (sử dụng độ đo Support, Confidence, Lift).
 - Không sử dụng Deep Learning hay bất kỳ thư viện `tensorflow`, `torch`, `keras`.
 - `TotalCharges` phải được chuyển bằng `pd.to_numeric(errors="coerce")` và impute median. `customerID` không được đưa vào feature.
 - Tất cả chỉ số trong báo cáo phải được tái tạo từ code và dataset trong `data/`.
@@ -22,25 +23,30 @@ telco-churn-project/
 │   ├── PROJECT_STRUCTURE.md         # Quy ước cấu trúc và luồng dữ liệu chi tiết
 │   └── archive/                     # README cũ, không dùng để chạy
 ├── notebooks/
-│   └── EDA.ipynb                    # EDA và tạo hình EDA
+│   ├── EDA.ipynb                    # EDA và tạo hình EDA
+│   └── Association_Rules.ipynb      # Sổ tay diễn giải luật kết hợp
 ├── src/
 │   ├── data_loader.py
 │   ├── preprocessor.py
 │   ├── classification.py
 │   ├── clustering.py
+│   ├── association_data.py
+│   ├── association_rules.py
 │   ├── evaluator.py
 │   ├── experiments.py
 │   └── prepare_classification_data.py
-├── tests/                           # 6 bộ unit test kiểm tra chặt chẽ pipeline
+├── tests/                           # 8 bộ unit test kiểm tra chặt chẽ pipeline
 ├── reports/
 │   ├── eda_insights.md              # Nhận xét chi tiết EDA
 │   ├── figures/
 │   │   ├── eda/                     # 6 biểu đồ phân bố và tương quan
 │   │   ├── classification/          # Confusion Matrix và biểu đồ so sánh độ đo test
-│   │   └── clustering/              # Elbow, Silhouette và PCA k=4
+│   │   ├── clustering/              # Elbow, Silhouette và PCA k=4
+│   │   └── association_rules/       # Biểu đồ Lift top luật của Apriori & FP-Growth
 │   └── metrics/
 │       ├── classification/          # CSV kết quả phân lớp
-│       └── clustering/              # CSV Silhouette, Inertia, cluster profile
+│       ├── clustering/              # CSV Silhouette, Inertia, cluster profile
+│       └── association_rules/       # CSV so sánh thuật toán và các luật Churn
 ├── requirements.txt
 └── README.md
 ```
@@ -96,6 +102,15 @@ python -m src.clustering --data data/interim/working_raw_7043.csv --out reports 
 python -m pytest tests/test_clustering.py -q
 ```
 
+## Chạy khai phá luật kết hợp (Association Rules)
+
+Khai phá luật kết hợp trên dữ liệu Telco bằng cả hai thuật toán Apriori và FP-Growth (đo runtime và lọc luật hướng tới `Churn=Yes`):
+
+```bash
+python -m src.association_rules --data data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv --out reports
+python -m pytest tests/test_association_rules.py -q
+```
+
 ## Kết quả đã chốt
 
 ### Phân lớp (Classification)
@@ -119,7 +134,9 @@ Bằng chứng nghiệm thu clustering và classification được kiểm tra th
 - `reports/figures/eda/`: hình khám phá dữ liệu (01..06).
 - `reports/figures/classification/`: Confusion Matrix và hình so sánh độ đo test.
 - `reports/figures/clustering/`: Elbow, Silhouette và PCA.
-- `reports/metrics/classification/` và `reports/metrics/clustering/`: CSV kết quả.
+- `reports/figures/association_rules/`: biểu đồ Lift của các luật kết hợp Churn.
+- `reports/metrics/classification/` và `reports/metrics/clustering/`: CSV kết quả phân lớp và phân cụm.
+- `reports/metrics/association_rules/`: CSV so sánh thuật toán Apriori/FP-Growth và danh sách luật.
 
 ## Hợp đồng interface giữa các module
 
