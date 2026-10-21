@@ -57,6 +57,7 @@ Tài liệu này mô tả chi tiết cách tổ chức thư mục, luồng dữ 
   - `reports/figures/classification/`:
     - `cm_logistic_regression.png`: Ma trận nhầm lẫn của Logistic Regression.
     - `cm_random_forest_classifier.png`: Ma trận nhầm lẫn của Random Forest.
+    - `test_metrics_comparison.png`: Biểu đồ cột so sánh các độ đo Test (Accuracy, Precision, Recall, F1-score) giữa 2 mô hình.
   - `reports/figures/clustering/`:
     - `elbow_kmeans.png`: Đồ thị Elbow phương pháp K-Means ($k=2 \dots 10$).
     - `silhouette_compare.png`: So sánh điểm Silhouette giữa K-Means và Hierarchical.
