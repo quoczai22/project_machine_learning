@@ -11,6 +11,7 @@ from pathlib import Path
 from time import perf_counter
 
 import matplotlib
+import numpy as np
 import pandas as pd
 from mlxtend.frequent_patterns import apriori, association_rules, fpgrowth
 
@@ -127,6 +128,117 @@ def save_top_rules_plot(rules: pd.DataFrame, path: str | Path, top_n: int = 10) 
     plt.close()
 
 
+def save_algorithm_comparison_plot(summaries_df: pd.DataFrame, path: str | Path) -> None:
+    """Lưu biểu đồ so sánh kết quả khai phá và thời gian chạy giữa Apriori và FP-Growth."""
+    destination = Path(path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5.5), gridspec_kw={"width_ratios": [1.2, 1]})
+    fig.suptitle(
+        "So sánh Apriori và FP-Growth trên cùng dữ liệu giao dịch",
+        fontsize=13,
+        fontweight="bold",
+        color="#00204a",
+        y=0.98,
+    )
+
+    algos = ["Apriori", "FP-Growth"]
+    freq_items = [
+        int(summaries_df.loc[summaries_df["algorithm"] == "apriori", "frequent_itemsets"].values[0]),
+        int(summaries_df.loc[summaries_df["algorithm"] == "fpgrowth", "frequent_itemsets"].values[0]),
+    ]
+    churn_rules = [
+        int(summaries_df.loc[summaries_df["algorithm"] == "apriori", "churn_rules"].values[0]),
+        int(summaries_df.loc[summaries_df["algorithm"] == "fpgrowth", "churn_rules"].values[0]),
+    ]
+    x = np.arange(len(algos))
+    width = 0.55
+
+    c_freq_apriori = "#1B828C"
+    c_freq_fpgrowth = "#E86A24"
+    c_rule_apriori = "#85BFC4"
+    c_rule_fpgrowth = "#F7AC80"
+
+    ax1.bar(x[0], freq_items[0], width, color=c_freq_apriori, label="Frequent itemsets")
+    ax1.bar(x[1], freq_items[1], width, color=c_freq_fpgrowth)
+    ax1.bar(x[0], churn_rules[0], width, color=c_rule_apriori, label="Luật → Churn=Yes")
+    ax1.bar(x[1], churn_rules[1], width, color=c_rule_fpgrowth)
+
+    ax1.set_title("Kết quả khai phá", fontsize=11, fontweight="bold", color="#00204a", pad=10)
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(algos, fontsize=10)
+    ax1.set_ylabel("Số lượng", fontsize=10)
+    ax1.set_ylim(0, max(freq_items) * 1.08)
+
+    for i, (f, r) in enumerate(zip(freq_items, churn_rules)):
+        ax1.text(x[i], f + 100, f"{f:,}".replace(",", "."), ha="center", va="bottom", fontsize=9.5, fontweight="bold")
+        ax1.text(x[i], r + 80, str(r), ha="center", va="bottom", fontsize=9.5, fontweight="bold")
+
+    ax1.spines["top"].set_visible(False)
+    ax1.spines["right"].set_visible(False)
+    ax1.legend(loc="lower center", bbox_to_anchor=(0.5, -0.25), ncol=2, frameon=False, fontsize=9.5)
+
+    runtime_apriori = float(summaries_df.loc[summaries_df["algorithm"] == "apriori", "runtime_seconds"].values[0])
+    runtime_fpgrowth = float(summaries_df.loc[summaries_df["algorithm"] == "fpgrowth", "runtime_seconds"].values[0])
+
+    ax2.bar(x[0], runtime_apriori, width, color=c_freq_apriori)
+    ax2.bar(x[1], runtime_fpgrowth, width, color=c_freq_fpgrowth)
+
+    ax2.set_title("Thời gian trong lượt thực nghiệm", fontsize=11, fontweight="bold", color="#00204a", pad=10)
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(algos, fontsize=10)
+    ax2.set_ylabel("Thời gian chạy (giây)", fontsize=10)
+    ax2.set_ylim(0, max(runtime_fpgrowth * 1.15, 1.0))
+
+    ax2.text(x[0], runtime_apriori + 0.08, f"{runtime_apriori:.2f} s".replace(".", ","), ha="center", va="bottom", fontsize=9.5, fontweight="bold")
+    ax2.text(x[1], runtime_fpgrowth + 0.08, f"{runtime_fpgrowth:.2f} s".replace(".", ","), ha="center", va="bottom", fontsize=9.5, fontweight="bold")
+
+    ax2.spines["top"].set_visible(False)
+    ax2.spines["right"].set_visible(False)
+
+    fig.text(0.5, -0.02, "Hai thuật toán cho cùng số frequent itemsets và luật ở cấu hình hiện tại. Thời gian phụ thuộc dữ liệu, ngưỡng và cách cài đặt.", ha="center", fontsize=8.5, color="#444444")
+
+    plt.tight_layout()
+    fig.savefig(destination, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
+
+def save_rules_quality_scatter(rules: pd.DataFrame, path: str | Path) -> None:
+    """Lưu biểu đồ phân tán chất lượng các luật Churn theo Support (%), Confidence (%) và Lift."""
+    destination = Path(path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+
+    fig, ax = plt.subplots(figsize=(9, 5.5))
+    support_pct = rules["support"] * 100
+    conf_pct = rules["confidence"] * 100
+    lift = rules["lift"]
+    ant_len = rules["antecedent_length"]
+    sizes = ant_len.map({1: 50, 2: 75, 3: 100}).fillna(70)
+
+    scatter = ax.scatter(
+        support_pct, conf_pct, c=lift, cmap="viridis",
+        s=sizes, alpha=0.85, edgecolors="none"
+    )
+
+    cbar = fig.colorbar(scatter, ax=ax, pad=0.02)
+    cbar.set_label("Lift", fontsize=10)
+
+    ax.set_title("Chất lượng các luật có consequent Churn=Yes", fontsize=13, fontweight="bold", color="#00204a", pad=15)
+    ax.set_xlabel("Support (%)", fontsize=10)
+    ax.set_ylabel("Confidence (%)", fontsize=10)
+    ax.set_xlim(4, max(support_pct) * 1.08)
+    ax.set_ylim(38, max(conf_pct) * 1.05)
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    fig.text(0.45, -0.04, "Mỗi điểm là một luật. Màu sáng hơn biểu thị Lift cao hơn; kích thước phản ánh số item ở vế trái.", ha="center", fontsize=8.5, color="#444444")
+
+    plt.tight_layout()
+    fig.savefig(destination, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Luật kết hợp Telco Churn")
     parser.add_argument("--data", required=True, help="CSV Telco gốc/đã làm sạch")
@@ -142,6 +254,7 @@ def main() -> None:
     metrics_dir = Path(args.out) / "metrics" / "association_rules"
     figures_dir = Path(args.out) / "figures" / "association_rules"
     metrics_dir.mkdir(parents=True, exist_ok=True)
+    figures_dir.mkdir(parents=True, exist_ok=True)
 
     all_rules: list[pd.DataFrame] = []
     summaries: list[dict[str, float | int | str]] = []
@@ -163,10 +276,17 @@ def main() -> None:
     pd.concat(all_rules, ignore_index=True).to_csv(
         metrics_dir / "association_rules_churn_yes.csv", index=False
     )
-    pd.DataFrame(summaries).to_csv(
+    df_summaries = pd.DataFrame(summaries)
+    df_summaries.to_csv(
         metrics_dir / "algorithm_comparison.csv", index=False
     )
-    print(pd.DataFrame(summaries).to_string(index=False))
+
+    # Lưu biểu đồ so sánh Apriori vs FP-Growth và biểu đồ phân tán chất lượng luật
+    save_algorithm_comparison_plot(df_summaries, figures_dir / "algorithm_comparison.png")
+    if not all_rules[0].empty:
+        save_rules_quality_scatter(all_rules[0], figures_dir / "rules_quality_scatter.png")
+
+    print(df_summaries.to_string(index=False))
 
 
 if __name__ == "__main__":

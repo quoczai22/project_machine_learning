@@ -32,7 +32,6 @@ Tài liệu này mô tả chi tiết cách tổ chức thư mục, luồng dữ 
 
 ### Sổ tay thực nghiệm (`notebooks/`)
 - `notebooks/EDA.ipynb`: Khám phá dữ liệu (EDA), trực quan hóa phân bố các biến và phân tích mối quan hệ với Churn.
-- `notebooks/Association_Rules.ipynb`: Sổ tay trực quan hóa và diễn giải kết quả luật kết hợp Apriori & FP-Growth.
 
 ### Kiểm thử tự động (`tests/`)
 - `test_data_integrity.py`: Kiểm tra tính toàn vẹn dữ liệu gốc, schema và các giá trị hợp lệ.
@@ -68,6 +67,8 @@ Tài liệu này mô tả chi tiết cách tổ chức thư mục, luồng dữ 
     - `silhouette_compare.png`: So sánh điểm Silhouette giữa K-Means và Hierarchical.
     - `pca_kmeans_k4.png`: Trực quan hóa 4 cụm khách hàng trên không gian 2D PCA.
   - `reports/figures/association_rules/`:
+    - `algorithm_comparison.png`: Biểu đồ cột so sánh kết quả khai phá (frequent itemsets, rules) và thời gian thực thi (runtime) giữa Apriori và FP-Growth.
+    - `rules_quality_scatter.png`: Biểu đồ phân tán đánh giá chất lượng luật kết hợp theo Support (%), Confidence (%) và điểm Lift.
     - `top_rules_lift_apriori.png`: Biểu đồ top luật có Lift cao nhất của Apriori.
     - `top_rules_lift_fpgrowth.png`: Biểu đồ top luật có Lift cao nhất của FP-Growth.
 

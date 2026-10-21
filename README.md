@@ -23,8 +23,7 @@ telco-churn-project/
 │   ├── PROJECT_STRUCTURE.md         # Quy ước cấu trúc và luồng dữ liệu chi tiết
 │   └── archive/                     # README cũ, không dùng để chạy
 ├── notebooks/
-│   ├── EDA.ipynb                    # EDA và tạo hình EDA
-│   └── Association_Rules.ipynb      # Sổ tay diễn giải luật kết hợp
+│   └── EDA.ipynb                    # EDA và tạo hình EDA
 ├── src/
 │   ├── data_loader.py
 │   ├── preprocessor.py
@@ -42,7 +41,7 @@ telco-churn-project/
 │   │   ├── eda/                     # 6 biểu đồ phân bố và tương quan
 │   │   ├── classification/          # Confusion Matrix và biểu đồ so sánh độ đo test
 │   │   ├── clustering/              # Elbow, Silhouette và PCA k=4
-│   │   └── association_rules/       # Biểu đồ Lift top luật của Apriori & FP-Growth
+│   │   └── association_rules/       # So sánh Apriori/FP-Growth, scatter chất lượng luật và top Lift
 │   └── metrics/
 │       ├── classification/          # CSV kết quả phân lớp
 │       ├── clustering/              # CSV Silhouette, Inertia, cluster profile
