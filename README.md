@@ -1,31 +1,28 @@
 # Telco Customer Churn Prediction
 
-Bai tap nhom mon Hoc may - HUIT. Du an du doan khach hang roi bo dich vu
-(`Churn`) va phan khuc khach hang bang cac thuat toan hoc may truyen thong.
+Bài tập nhóm môn Học máy - HUIT. Dự án dự đoán khách hàng rời bỏ dịch vụ (`Churn`) và phân khúc khách hàng bằng các thuật toán học máy truyền thống.
 
-## Pham vi hoc thuat
+## Phạm vi học thuật
 
-- Phan lop: Logistic Regression va Random Forest, co `class_weight="balanced"`.
-- Gom cum: KMeans va Hierarchical Clustering; so cum duoc chon bang Elbow va/
-  hoac Silhouette Score.
-- Khong su dung Deep Learning hay bat ky thu vien `tensorflow`, `torch`, `keras`.
-- `TotalCharges` phai duoc chuyen bang `pd.to_numeric(errors="coerce")` va
-  impute median. `customerID` khong duoc dua vao feature.
-- Tat ca chi so trong bao cao phai duoc tai tao tu code va dataset trong `data/`.
+- Phân lớp: Logistic Regression và Random Forest, có `class_weight="balanced"`.
+- Gom cụm: KMeans và Hierarchical Clustering; số cụm được chọn bằng Elbow và/hoặc Silhouette Score.
+- Không sử dụng Deep Learning hay bất kỳ thư viện `tensorflow`, `torch`, `keras`.
+- `TotalCharges` phải được chuyển bằng `pd.to_numeric(errors="coerce")` và impute median. `customerID` không được đưa vào feature.
+- Tất cả chỉ số trong báo cáo phải được tái tạo từ code và dataset trong `data/`.
 
-## Cau truc
+## Cấu trúc thư mục
 
 ```text
 telco-churn-project/
 ├── data/
-│   ├── raw/                         # CSV Telco goc
-│   ├── interim/                     # input 7.043 dong cho clustering
-│   └── processed/                   # Train/Test da tien xu ly va metadata
+│   ├── raw/                         # CSV Telco gốc
+│   ├── interim/                     # Input 7.043 dòng cho clustering
+│   └── processed/                   # Train/Test đã tiền xử lý và metadata
 ├── docs/
-│   ├── PROJECT_STRUCTURE.md         # Quy uoc cau truc va luong du lieu chi tiet
-│   └── archive/                     # README cu, khong dung de chay
+│   ├── PROJECT_STRUCTURE.md         # Quy ước cấu trúc và luồng dữ liệu chi tiết
+│   └── archive/                     # README cũ, không dùng để chạy
 ├── notebooks/
-│   └── EDA.ipynb                    # EDA va tao hinh EDA
+│   └── EDA.ipynb                    # EDA và tạo hình EDA
 ├── src/
 │   ├── data_loader.py
 │   ├── preprocessor.py
@@ -34,55 +31,47 @@ telco-churn-project/
 │   ├── evaluator.py
 │   ├── experiments.py
 │   └── prepare_classification_data.py
-├── tests/                           # 6 bo unit test kiem tra chat che pipeline
+├── tests/                           # 6 bộ unit test kiểm tra chặt chẽ pipeline
 ├── reports/
-│   ├── eda_insights.md              # Nhan xet chi tiet EDA
+│   ├── eda_insights.md              # Nhận xét chi tiết EDA
 │   ├── figures/
-│   │   ├── eda/                     # 6 bieu do phan bo va tuong quan
-│   │   ├── classification/          # Confusion Matrix va bieu do so sanh do do test
-│   │   └── clustering/              # Elbow, Silhouette va PCA k=4
+│   │   ├── eda/                     # 6 biểu đồ phân bố và tương quan
+│   │   ├── classification/          # Confusion Matrix và biểu đồ so sánh độ đo test
+│   │   └── clustering/              # Elbow, Silhouette và PCA k=4
 │   └── metrics/
-│       ├── classification/          # CSV ket qua phan lop
+│       ├── classification/          # CSV kết quả phân lớp
 │       └── clustering/              # CSV Silhouette, Inertia, cluster profile
 ├── requirements.txt
 └── README.md
 ```
 
-## Cai dat va chay
+## Cài đặt và chạy
 
-Yeu cau Python 3.10+ (Python 3.8+ duoc phep theo de cuong, nhung 3.10+ duoc
-khuyen nghi).
+Yêu cầu Python 3.10+ (Python 3.8+ được phép theo đề cương, nhưng 3.10+ được khuyến nghị).
 
 ```bash
 cd telco-churn-project
 python -m venv .venv
 ```
 
-Kich hoat moi truong ao tren Windows PowerShell:
+Kích hoạt môi trường ảo trên Windows PowerShell:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-Cai thu vien va chay test:
+Cài thư viện và chạy test:
 
 ```bash
 python -m pip install -r requirements.txt
 python -m pytest
 ```
 
-## Du lieu classification da chot
+## Dữ liệu phân lớp (Classification) đã chốt
 
-Classification dung cap file da tien xu ly cua thanh vien 2:
-`data/processed/Train_Data.csv` (5.634 dong) va
-`data/processed/Test_Data.csv` (1.409 dong). Hai file la mot cap split 80/20
-da co dinh; `src/experiments.py` dung truc tiep cap nay va khong split, scale
-hay one-hot encode lan nua. GridSearchCV dung `scoring="f1"`; cac model dung
-`random_state=42` va `class_weight="balanced"`.
+Classification dùng cặp file đã tiền xử lý của thành viên 2: `data/processed/Train_Data.csv` (5.634 dòng) và `data/processed/Test_Data.csv` (1.409 dòng). Hai file là một cặp split 80/20 đã cố định; `src/experiments.py` dùng trực tiếp cặp này và không split, scale hay one-hot encode lần nữa. GridSearchCV dùng `scoring="f1"`; các model dùng `random_state=42` và `class_weight="balanced"`.
 
-Cap file nay duoc tao lai tu raw CSV bang lenh sau de co the kiem tra quy
-trinh: split 80/20 voi `random_state=42`, `stratify=Churn`; imputer, scaler va
-encoder chi `fit` tren Train va chi `transform` Test.
+Cặp file này được tạo lại từ raw CSV bằng lệnh sau để có thể kiểm tra quy trình: split 80/20 với `random_state=42`, `stratify=Churn`; imputer, scaler và encoder chỉ `fit` trên Train và chỉ `transform` Test.
 
 ```bash
 python -m src.prepare_classification_data
@@ -90,60 +79,51 @@ python -m src.experiments
 python -m pytest tests/test_leakage.py -q
 ```
 
-Metadata tai tao nam tai `data/processed/classification_split_metadata.json`.
+Metadata tái tạo nằm tại `data/processed/classification_split_metadata.json`.
 
-Khi cac module da duoc trien khai, pipeline se chay theo thu tu:
+Khi các module đã được triển khai, pipeline sẽ chạy theo thứ tự:
 
 ```text
 data_loader -> preprocessor -> classification / clustering -> evaluator
 ```
 
-## Chay lai clustering
+## Chạy lại phân cụm (Clustering)
 
-Clustering dung mot bo input rieng va thong nhat quy trinh: quet `k = 2..10`
-cho K-Means va Hierarchical, sau do phan tich cuoi voi `k = 4`. File input
-`data/interim/working_raw_7043.csv` co 7.043 dong va chua bi scale; StandardScaler
-duoc fit trong `src/clustering.py`.
+Clustering dùng một bộ input riêng và thống nhất quy trình: quét `k = 2..10` cho K-Means và Hierarchical, sau đó phân tích cuối với `k = 4`. File input `data/interim/working_raw_7043.csv` có 7.043 dòng và chưa bị scale; StandardScaler được fit trong `src/clustering.py`.
 
 ```bash
 python -m src.clustering --data data/interim/working_raw_7043.csv --out reports --k 4
 python -m pytest tests/test_clustering.py -q
 ```
 
-## Ket qua da chot
+## Kết quả đã chốt
 
-### Classification
+### Phân lớp (Classification)
 
 | Model | Accuracy | Precision | Recall | F1 |
 |---|---:|---:|---:|---:|
 | Logistic Regression | 0.7424 | 0.5096 | 0.7834 | 0.6175 |
 | Random Forest | 0.7530 | 0.5236 | 0.7701 | 0.6234 |
 
-GridSearchCV dung 5-fold cross-validation va `scoring="f1"`. Random Forest
-duoc chon theo F1 cao nhat; Logistic Regression co Recall cao hon.
+GridSearchCV dùng 5-fold cross-validation và `scoring="f1"`. Random Forest được chọn theo F1 cao nhất; Logistic Regression có Recall cao hơn.
 
-### Clustering
+### Phân cụm (Clustering)
 
-K-Means va Hierarchical duoc danh gia voi k = 2..10. Silhouette cao nhat cua
-K-Means la k = 2 (0.4255); nhom chon K-Means k = 4 (0.4212) de co bon phan
-khuc de dien giai hon. Tai k = 4, Hierarchical dat 0.3457.
+K-Means và Hierarchical được đánh giá với k = 2..10. Silhouette cao nhất của K-Means là k = 2 (0.4255); nhóm chọn K-Means k = 4 (0.4212) để có bốn phân khúc dễ diễn giải hơn. Tại k = 4, Hierarchical đạt 0.3457.
 
-Bang chung nghiem thu clustering va classification duoc kiem tra thong qua bo test trong `tests/`.
+Bằng chứng nghiệm thu clustering và classification được kiểm tra thông qua bộ test trong `tests/`.
 
-## Quy uoc artifact
+## Quy ước artifact
 
-- `reports/eda_insights.md`: nhan xet phan tich du lieu EDA.
-- `reports/figures/eda/`: hinh kham pha du lieu (01..06).
-- `reports/figures/classification/`: Confusion Matrix va hinh so sanh do do test.
-- `reports/figures/clustering/`: Elbow, Silhouette va PCA.
-- `reports/metrics/classification/` va `reports/metrics/clustering/`: CSV ket qua.
+- `reports/eda_insights.md`: nhận xét phân tích dữ liệu EDA.
+- `reports/figures/eda/`: hình khám phá dữ liệu (01..06).
+- `reports/figures/classification/`: Confusion Matrix và hình so sánh độ đo test.
+- `reports/figures/clustering/`: Elbow, Silhouette và PCA.
+- `reports/metrics/classification/` và `reports/metrics/clustering/`: CSV kết quả.
 
-## Hop dong interface giua cac module
+## Hợp đồng interface giữa các module
 
-Tat ca ham cong khai phai co docstring, type hints va khong doc/ghi file an
-ben trong (tru cac ham duoc ghi ro la I/O). Dung `random_state=42` mac dinh de
-tai tao ket qua. Du lieu phan lop phai split truoc khi fit imputer/encoder/scaler
-de tranh data leakage.
+Tất cả hàm công khai phải có docstring, type hints và không đọc/ghi file ẩn bên trong (trừ các hàm được ghi rõ là I/O). Dùng `random_state=42` mặc định để tái tạo kết quả. Dữ liệu phân lớp phải split trước khi fit imputer/encoder/scaler để tránh data leakage.
 
 ### `src/data_loader.py`
 
@@ -152,14 +132,13 @@ from pathlib import Path
 import pandas as pd
 
 def load_telco_data(path: str | Path) -> pd.DataFrame:
-    """Doc CSV, kiem tra cac cot bat buoc va tra ve ban sao DataFrame thô."""
+    """Đọc CSV, kiểm tra các cột bắt buộc và trả về bản sao DataFrame thô."""
 
 def validate_raw_schema(df: pd.DataFrame) -> None:
-    """Raise ValueError neu thieu cot bat buoc hoac du lieu rong."""
+    """Raise ValueError nếu thiếu cột bắt buộc hoặc dữ liệu rỗng."""
 ```
 
-Input la CSV goc co 21 cot; output giu nguyen `customerID`, `TotalCharges` va
-`Churn` de preprocessing xu ly tap trung.
+Input là CSV gốc có 21 cột; output giữ nguyên `customerID`, `TotalCharges` và `Churn` để preprocessing xử lý tập trung.
 
 ### `src/preprocessor.py`
 
@@ -169,25 +148,23 @@ from sklearn.pipeline import Pipeline
 import pandas as pd
 
 def clean_telco_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Chuyen TotalCharges sang float, impute median, bo customerID va map Churn."""
+    """Chuyển TotalCharges sang float, impute median, bỏ customerID và map Churn."""
 
 def split_features_target(
     df: pd.DataFrame, target: str = "Churn"
 ) -> tuple[pd.DataFrame, pd.Series]:
-    """Tra ve X va y nhi phan (No=0, Yes=1), khong co customerID."""
+    """Trả về X và y nhị phân (No=0, Yes=1), không có customerID."""
 
 def build_classification_preprocessor(X: pd.DataFrame) -> ColumnTransformer:
-    """Tao transformer: numeric Median+StandardScaler, categorical OneHotEncoder."""
+    """Tạo transformer: numeric Median+StandardScaler, categorical OneHotEncoder."""
 
 def transform_cluster_features(
     df: pd.DataFrame, feature_columns: list[str]
 ) -> tuple[pd.DataFrame, Pipeline]:
-    """Tao feature gom cum da scale rieng va tra ve scaler/pipeline da fit."""
+    """Tạo feature gom cụm đã scale riêng và trả về scaler/pipeline đã fit."""
 ```
 
-`clean_telco_data` chi lam sach quy tac; khi train classification, imputer,
-encoder va scaler phai nam trong Pipeline cua train fold. Clustering dung scaler
-rieng vi tap feature khac classification.
+`clean_telco_data` chỉ làm sạch quy tắc; khi train classification, imputer, encoder và scaler phải nằm trong Pipeline của train fold. Clustering dùng scaler riêng vì tập feature khác classification.
 
 ### `src/classification.py`
 
@@ -196,21 +173,20 @@ from sklearn.pipeline import Pipeline
 import pandas as pd
 
 def build_classification_pipelines(X: pd.DataFrame) -> dict[str, Pipeline]:
-    """Tra ve pipeline logistic_regression va random_forest, deu balanced."""
+    """Trả về pipeline logistic_regression và random_forest, đều balanced."""
 
 def tune_classifiers(
     X_train: pd.DataFrame, y_train: pd.Series, cv: int = 5, random_state: int = 42
 ) -> dict[str, object]:
-    """GridSearchCV, fit train-only, tra ve best_estimator_ va best_params_ tung model."""
+    """GridSearchCV, fit train-only, trả về best_estimator_ và best_params_ từng model."""
 
 def predict_classifiers(
     fitted_models: dict[str, Pipeline], X_test: pd.DataFrame
 ) -> dict[str, pd.Series]:
-    """Tra ve nhan du doan 0/1 cua tung model theo index X_test."""
+    """Trả về nhãn dự đoán 0/1 của từng model theo index X_test."""
 ```
 
-`tune_classifiers` khong duoc nhin `X_test`/`y_test`. Ket qua can du `best_params`,
-`cv_score` va `estimator` de evaluator tai tao duoc bao cao.
+`tune_classifiers` không được nhìn `X_test`/`y_test`. Kết quả cần đủ `best_params`, `cv_score` và `estimator` để evaluator tái tạo được báo cáo.
 
 ### `src/clustering.py`
 
@@ -218,20 +194,19 @@ def predict_classifiers(
 import pandas as pd
 
 def build_service_count(df: pd.DataFrame) -> pd.Series:
-    """Dem dich vu dang ky theo quy tac tai lieu hoa; index giong df."""
+    """Đếm dịch vụ đăng ký theo quy tắc tài liệu hóa; index giống df."""
 
 def select_cluster_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Tra ve tenure, MonthlyCharges va service_count da lam sach, chua scale."""
+    """Trả về tenure, MonthlyCharges và service_count đã làm sạch, chưa scale."""
 
 def evaluate(data: pd.DataFrame, k_values: range = range(2, 11)):
-    """Tra ve inertia va silhouette cua KMeans va Hierarchical cho moi k."""
+    """Trả về inertia và silhouette của KMeans và Hierarchical cho mỗi k."""
 
 def fit_selected(data: pd.DataFrame, k: int = 4):
-    """Fit KMeans va Hierarchical cho k duoc chon."""
+    """Fit KMeans và Hierarchical cho k được chọn."""
 ```
 
-So cum duoc chon tu bang ket qua (khong chon tuy y). `service_count` can dem cac
-dich vu co gia tri `Yes`; quy tac chinh thuc phai ghi ro trong docstring va report.
+Số cụm được chọn từ bảng kết quả (không chọn tùy ý). `service_count` cần đếm các dịch vụ có giá trị `Yes`; quy tắc chính thức phải ghi rõ trong docstring và report.
 
 ### `src/evaluator.py`
 
@@ -240,47 +215,44 @@ from pathlib import Path
 import pandas as pd
 
 def classification_metrics(y_true: pd.Series, y_pred: pd.Series) -> dict[str, float]:
-    """Tinh accuracy, precision, recall, f1 cho lop Churn=1."""
+    """Tính accuracy, precision, recall, f1 cho lớp Churn=1."""
 
 def clustering_metrics(X_scaled: pd.DataFrame, labels: pd.Series) -> dict[str, float]:
-    """Tinh silhouette_score; raise ValueError neu labels khong hop le."""
+    """Tính silhouette_score; raise ValueError nếu labels không hợp lệ."""
 
 def clustering_silhouette(features: np.ndarray, labels: np.ndarray) -> float:
-    """Tinh silhouette_score; raise ValueError neu labels khong hop le."""
+    """Tính silhouette_score; raise ValueError nếu labels không hợp lệ."""
 ```
 
-### Tien ich ho tro (`model_utils`)
+### Tiện ích hỗ trợ (`model_utils`)
 
-Cac ham tien ich nhu `ensure_output_dir` va `save_json` duoc tich hop truc tiep
-trong `src/prepare_classification_data.py` va `src/experiments.py` de quan ly output va metadata JSON.
+Các hàm tiện ích như `ensure_output_dir` và `save_json` được tích hợp trực tiếp trong `src/prepare_classification_data.py` và `src/experiments.py` để quản lý output và metadata JSON.
 
-## Phan cong va tieu chi ban giao
+## Phân công và tiêu chí bàn giao
 
-| Thanh vien | Pham vi | Dau ra bat buoc |
+| Thành viên | Phạm vi | Đầu ra bắt buộc |
 |---|---|---|
-| 1 - Data & EDA | `notebooks/EDA.ipynb` | Phan bo Churn, Contract, tenure, PaymentMethod va heatmap tuong quan |
-| 2 - Preprocessing | `data_loader.py`, `preprocessor.py` | Data sach, schema validation, test don vi |
-| 3 - Classification | `classification.py` | LR vs RF, GridSearchCV, metrics tai tao duoc |
-| 4 - Clustering | `clustering.py` | KMeans vs Hierarchical, Elbow/Silhouette, phan khuc |
-| 5 - Evaluation & Testing | `evaluator.py`, `tests/` | 100% pytest pass, metric va anh Confusion Matrix |
-| 6 - Report | `reports/` | Bao cao chi dung so lieu sinh ra tu pipeline |
+| 1 - Data & EDA | `notebooks/EDA.ipynb` | Phân bố Churn, Contract, tenure, PaymentMethod và heatmap tương quan |
+| 2 - Preprocessing | `data_loader.py`, `preprocessor.py` | Data sạch, schema validation, unit test |
+| 3 - Classification | `classification.py` | LR vs RF, GridSearchCV, metrics tái tạo được |
+| 4 - Clustering | `clustering.py` | KMeans vs Hierarchical, Elbow/Silhouette, phân khúc |
+| 5 - Evaluation & Testing | `evaluator.py`, `tests/` | 100% pytest pass, metric và ảnh Confusion Matrix |
+| 6 - Report | `reports/` | Báo cáo chỉ dùng số liệu sinh ra từ pipeline |
 
-## Moc kiem tra 14 ngay
+## Mốc kiểm tra 14 ngày
 
-| Thoi gian | Moc ban giao |
+| Thời gian | Mốc bàn giao |
 |---|---|
-| Ngay 1-3 | EDA va code khung module |
-| Ngay 4-6 | Data loader/preprocessing; data sach |
-| Ngay 7-10 | Classification, clustering va test |
-| Ngay 11-12 | Review cheo; `pytest` pass 100% |
-| Ngay 13-14 | Bao cao va thuyet trinh |
+| Ngày 1-3 | EDA và code khung module |
+| Ngày 4-6 | Data loader/preprocessing; data sạch |
+| Ngày 7-10 | Classification, clustering và test |
+| Ngày 11-12 | Review chéo; `pytest` pass 100% |
+| Ngày 13-14 | Báo cáo và thuyết trình |
 
-## Lenh review bat buoc
+## Lệnh review bắt buộc
 
 ```bash
 python -m pytest
 ```
 
-Chi nhan module khi test tuong ung pass, co docstring, khong leakage, va khong
-co import Deep Learning. Dung mau trang thai trong yeu cau cua truong nhom khi
-bao cao review.
+Chỉ nhận module khi test tương ứng pass, có docstring, không leakage, và không có import Deep Learning. Dùng mẫu trạng thái trong yêu cầu của trưởng nhóm khi báo cáo review.
