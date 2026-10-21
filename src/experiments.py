@@ -14,6 +14,7 @@ import sys
 import time
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -156,8 +157,95 @@ def run_classification_experiments(
         plt.close(figure)
         logger.info(f"[LƯU THÀNH CÔNG] Confusion matrix lưu tại: {cm_path}")
 
+    # Vẽ và lưu biểu đồ cột so sánh các độ đo Test
+    comparison_chart_path = os.path.join(figures_dir, "test_metrics_comparison.png")
+    save_metrics_comparison_plot(df_results, comparison_chart_path)
+    logger.info(f"[LƯU THÀNH CÔNG] Biểu đồ so sánh metrics lưu tại: {comparison_chart_path}")
+
     logger.info("=" * 60)
     return df_results
+
+
+def save_metrics_comparison_plot(df_results: pd.DataFrame, output_path: str) -> None:
+    """Vẽ và lưu biểu đồ cột so sánh các độ đo trên tập Test giữa Logistic Regression và Random Forest."""
+    metrics = ["Accuracy", "Precision", "Recall", "F1_Score"]
+    display_metrics = ["Accuracy", "Precision", "Recall", "F1-score"]
+
+    lr_row = df_results[df_results["Model"] == "Logistic Regression"]
+    rf_row = df_results[df_results["Model"] == "Random Forest"]
+
+    if lr_row.empty or rf_row.empty:
+        return
+
+    lr_scores = [float(lr_row[m].values[0]) for m in metrics]
+    rf_scores = [float(rf_row[m].values[0]) for m in metrics]
+
+    x = np.arange(len(metrics))
+    width = 0.36
+
+    fig, ax = plt.subplots(figsize=(6.5, 6), facecolor="white")
+
+    color_lr = "#3C7BC8"  # Xanh dương (Logistic Regression)
+    color_rf = "#E85A04"  # Cam (Random Forest)
+
+    rects1 = ax.bar(x - width / 2, lr_scores, width, label="Logistic Regression", color=color_lr)
+    rects2 = ax.bar(x + width / 2, rf_scores, width, label="Random Forest", color=color_rf)
+
+    ax.set_title("Các độ đo trên tập Test", fontsize=13, pad=18)
+    ax.set_xticks(x)
+    ax.set_xticklabels(display_metrics, fontsize=11)
+    ax.set_ylim(0, 1.05)
+    ax.set_yticks(np.arange(0, 1.1, 0.2))
+    ax.set_yticklabels([f"{y:.1f}" for y in np.arange(0, 1.1, 0.2)], fontsize=10, color="#555555")
+
+    ax.grid(axis="y", linestyle="-", color="#e0e0e0", linewidth=0.8, zorder=0)
+    ax.set_axisbelow(True)
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_color("#cccccc")
+    ax.spines["bottom"].set_color("#cccccc")
+    ax.tick_params(axis="both", colors="#888888", length=4)
+    ax.tick_params(axis="x", labelcolor="#333333")
+
+    for rect in rects1:
+        h = rect.get_height()
+        ax.text(
+            rect.get_x() + rect.get_width() / 2,
+            h + 0.015,
+            f"{h:.3f}",
+            ha="center",
+            va="bottom",
+            fontsize=9.5,
+            color="#333333",
+        )
+
+    for rect in rects2:
+        h = rect.get_height()
+        ax.text(
+            rect.get_x() + rect.get_width() / 2,
+            h + 0.015,
+            f"{h:.3f}",
+            ha="center",
+            va="bottom",
+            fontsize=9.5,
+            color="#333333",
+        )
+
+    ax.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.12),
+        ncol=2,
+        frameon=False,
+        fontsize=10.5,
+        handlelength=1.2,
+        handleheight=1.2,
+    )
+
+    plt.tight_layout()
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    fig.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
 
 
 if __name__ == "__main__":
