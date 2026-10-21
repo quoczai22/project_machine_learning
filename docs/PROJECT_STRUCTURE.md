@@ -25,6 +25,5 @@ Các CSV thành viên bàn giao còn lại trong `data/processed/` được gi�
 - `reports/figures/clustering/`: Elbow, Silhouette, PCA và profile cụm.
 - `reports/metrics/classification/`: CSV metric classification duy nhất.
 - `reports/metrics/clustering/`: CSV Silhouette, Inertia, nhãn cụm và profile cụm.
-- `reports/qa/`: log test và biên bản nghiệm thu.
 
 Không dùng file trong `reports/` làm input để train model. Mỗi biểu đồ/bảng trong báo cáo Word phải truy được về một file trong `reports/` và một lệnh chạy ở README.

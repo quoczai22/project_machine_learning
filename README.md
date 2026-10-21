@@ -122,8 +122,7 @@ K-Means va Hierarchical duoc danh gia voi k = 2..10. Silhouette cao nhat cua
 K-Means la k = 2 (0.4255); nhom chon K-Means k = 4 (0.4212) de co bon phan
 khuc de dien giai hon. Tai k = 4, Hierarchical dat 0.3457.
 
-Bang chung nghiem thu clustering nam tai `reports/qa/NGHIEM_THU_CLUSTERING.md`;
-log clustering ghi nhan `4 passed` nam tai `reports/qa/pytest_clustering.txt`.
+Bang chung nghiem thu clustering va classification duoc kiem tra thong qua bo test trong `tests/`.
 
 ## Quy uoc artifact
 
@@ -131,7 +130,6 @@ log clustering ghi nhan `4 passed` nam tai `reports/qa/pytest_clustering.txt`.
 - `reports/figures/classification/`: Confusion Matrix va hinh phan lop.
 - `reports/figures/clustering/`: Elbow, Silhouette va PCA.
 - `reports/metrics/classification/` va `reports/metrics/clustering/`: CSV ket qua.
-- `reports/qa/`: bien ban va log nghiem thu; khong dung lam input model.
 
 ## Hop dong interface giua cac module
 
