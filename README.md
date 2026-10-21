@@ -22,6 +22,7 @@ telco-churn-project/
 │   ├── interim/                     # input 7.043 dong cho clustering
 │   └── processed/                   # Train/Test da tien xu ly va metadata
 ├── docs/
+│   ├── PROJECT_STRUCTURE.md         # Quy uoc cau truc va luong du lieu chi tiet
 │   └── archive/                     # README cu, khong dung de chay
 ├── notebooks/
 │   └── EDA.ipynb                    # EDA va tao hinh EDA
@@ -33,11 +34,16 @@ telco-churn-project/
 │   ├── evaluator.py
 │   ├── experiments.py
 │   └── prepare_classification_data.py
-├── tests/
+├── tests/                           # 6 bo unit test kiem tra chat che pipeline
 ├── reports/
-│   ├── figures/eda|classification|clustering/
-│   ├── metrics/classification|clustering/
-│   └── qa/
+│   ├── eda_insights.md              # Nhan xet chi tiet EDA
+│   ├── figures/
+│   │   ├── eda/                     # 6 bieu do phan bo va tuong quan
+│   │   ├── classification/          # Confusion Matrix va bieu do so sanh do do test
+│   │   └── clustering/              # Elbow, Silhouette va PCA k=4
+│   └── metrics/
+│       ├── classification/          # CSV ket qua phan lop
+│       └── clustering/              # CSV Silhouette, Inertia, cluster profile
 ├── requirements.txt
 └── README.md
 ```
@@ -126,8 +132,9 @@ Bang chung nghiem thu clustering va classification duoc kiem tra thong qua bo te
 
 ## Quy uoc artifact
 
-- `reports/figures/eda/`: hinh kham pha du lieu.
-- `reports/figures/classification/`: Confusion Matrix va hinh phan lop.
+- `reports/eda_insights.md`: nhan xet phan tich du lieu EDA.
+- `reports/figures/eda/`: hinh kham pha du lieu (01..06).
+- `reports/figures/classification/`: Confusion Matrix va hinh so sanh do do test.
 - `reports/figures/clustering/`: Elbow, Silhouette va PCA.
 - `reports/metrics/classification/` va `reports/metrics/clustering/`: CSV ket qua.
 
@@ -242,20 +249,10 @@ def clustering_silhouette(features: np.ndarray, labels: np.ndarray) -> float:
     """Tinh silhouette_score; raise ValueError neu labels khong hop le."""
 ```
 
-### `src/model_utils.py`
+### Tien ich ho tro (`model_utils`)
 
-```python
-from pathlib import Path
-import json
-
-RANDOM_STATE = 42
-
-def ensure_output_dir(path: str | Path) -> Path:
-    """Tao va tra ve thu muc output."""
-
-def save_json(payload: dict, output_path: str | Path) -> None:
-    """Luu metrics/metadata theo JSON co the tai tao."""
-```
+Cac ham tien ich nhu `ensure_output_dir` va `save_json` duoc tich hop truc tiep
+trong `src/prepare_classification_data.py` va `src/experiments.py` de quan ly output va metadata JSON.
 
 ## Phan cong va tieu chi ban giao
 
@@ -266,7 +263,7 @@ def save_json(payload: dict, output_path: str | Path) -> None:
 | 3 - Classification | `classification.py` | LR vs RF, GridSearchCV, metrics tai tao duoc |
 | 4 - Clustering | `clustering.py` | KMeans vs Hierarchical, Elbow/Silhouette, phan khuc |
 | 5 - Evaluation & Testing | `evaluator.py`, `tests/` | 100% pytest pass, metric va anh Confusion Matrix |
-| 6 - Report | `report/` | Bao cao chi dung so lieu sinh ra tu pipeline |
+| 6 - Report | `reports/` | Bao cao chi dung so lieu sinh ra tu pipeline |
 
 ## Moc kiem tra 14 ngay
 
