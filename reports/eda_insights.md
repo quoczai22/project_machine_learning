@@ -30,6 +30,8 @@ Median `tenure` của nhóm Churn là **10 tháng**, trong khi nhóm không Chur
 
 Điều này cho thấy khách hàng mới sử dụng dịch vụ có xu hướng Churn cao hơn. Giai đoạn đầu của vòng đời khách hàng có thể là thời điểm cần tăng cường chăm sóc và các biện pháp giữ chân.
 
+Chia `tenure` theo cùng các khoảng dùng trong luật kết hợp: nhóm **0-12 tháng** (2.186 khách hàng) có tỷ lệ Churn **47,44%**, nhóm **13-48 tháng** **23,64%** và nhóm **>48 tháng** chỉ **9,51%**.
+
 ## 6. MonthlyCharges và Churn
 
 Median `MonthlyCharges` của nhóm Churn là khoảng **79,65**, cao hơn nhóm không Churn khoảng **64,43**.
@@ -44,14 +46,23 @@ Trong nhóm biến số được xét, `tenure` có tương quan âm với `Chur
 
 Các hệ số tương quan chỉ phản ánh mức độ liên hệ tuyến tính giữa các biến và **không chứng minh quan hệ nhân quả**.
 
-## 8. Kết luận
+## 8. Churn theo InternetService và TechSupport
 
-Qua phân tích **7.043 khách hàng**, các biến `Contract`, `PaymentMethod`, `tenure` và `MonthlyCharges` đều cho thấy sự khác biệt giữa nhóm Churn và không Churn.
+Khách hàng dùng **Fiber optic** có tỷ lệ Churn **41,89%**, cao hơn **DSL** (**18,96%**) và nhóm không dùng Internet (**7,40%**).
+
+Nhóm **không đăng ký TechSupport** có tỷ lệ Churn **41,64%**, khoảng **2,7 lần** nhóm có đăng ký (**15,17%**); nhóm `No internet service` có tỷ lệ **7,40%**, trùng với nhóm không dùng Internet.
+
+Fiber optic và tenure 0-12 tháng cũng là hai item của luật kết hợp nổi bật với `Churn=Yes`. Các chênh lệch này chỉ là liên hệ quan sát được, **không chứng minh quan hệ nhân quả**.
+
+## 9. Kết luận
+
+Qua phân tích **7.043 khách hàng**, các biến `Contract`, `PaymentMethod`, `tenure`, `MonthlyCharges` và `InternetService` đều cho thấy sự khác biệt giữa nhóm Churn và không Churn.
 
 Đáng chú ý nhất:
 - **Month-to-month** có tỷ lệ Churn cao nhất (**42,71%**).
 - **Electronic check** có tỷ lệ Churn cao nhất trong các phương thức thanh toán (**45,29%**).
 - Median `tenure` của nhóm Churn (**10 tháng**) thấp hơn nhiều so với nhóm không Churn (**38 tháng**).
 - Median `MonthlyCharges` của nhóm Churn (**79,65**) cao hơn nhóm không Churn (**64,43**).
+- **Fiber optic** có tỷ lệ Churn cao nhất trong các loại Internet (**41,89%**).
 
 Các kết quả này có thể được sử dụng làm cơ sở cho bước tiếp theo là xây dựng mô hình dự đoán Churn và đánh giá các yếu tố ảnh hưởng đến khả năng khách hàng rời bỏ dịch vụ.
