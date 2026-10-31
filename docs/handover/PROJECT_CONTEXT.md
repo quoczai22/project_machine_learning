@@ -185,7 +185,7 @@ cũ từ lượt chạy khác.
   backup trước khi người phụ trách kiểm tra và commit xong.
 - File build tạm như `.ppt_build*`, `.docx_render_*`, `.chart-data-*` bị ignore.
 
-## 11. Cách trợ lý khác nên hỗ trợ
+## 11. Lưu ý khi hỗ trợ dự án
 
 Ưu tiên kiểm tra số liệu và đường dẫn trước khi đề xuất sửa. Không thay đổi
 thuật toán, dữ liệu, số liệu chốt, Word/PPT hoặc branch khi chưa được yêu cầu
