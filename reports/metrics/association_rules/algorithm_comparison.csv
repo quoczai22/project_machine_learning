@@ -1,3 +1,0 @@
-algorithm,frequent_itemsets,churn_rules,runtime_seconds
-apriori,6850,127,0.151952500018524
-fpgrowth,6850,127,1.5302726999798324
