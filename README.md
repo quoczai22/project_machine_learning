@@ -18,9 +18,6 @@ telco-churn-project/
 │   ├── raw/                         # CSV Telco gốc
 │   ├── interim/                     # Input 7.043 dòng cho clustering
 │   └── processed/                   # Train/Test đã tiền xử lý và metadata
-├── docs/
-│   ├── PROJECT_STRUCTURE.md         # Quy ước cấu trúc và luồng dữ liệu chi tiết
-│   └── archive/                     # README cũ, không dùng để chạy
 ├── notebooks/
 │   └── EDA.ipynb                    # EDA và tạo hình EDA
 ├── src/
@@ -33,7 +30,6 @@ telco-churn-project/
 │   └── prepare_classification_data.py
 ├── tests/                           # 6 bộ unit test kiểm tra chặt chẽ pipeline
 ├── reports/
-│   ├── eda_insights.md              # Nhận xét chi tiết EDA
 │   ├── figures/
 │   │   ├── eda/                     # 7 biểu đồ phân bố và tương quan
 │   │   ├── classification/          # Confusion Matrix và biểu đồ so sánh độ đo test
@@ -115,7 +111,6 @@ Bằng chứng nghiệm thu clustering và classification được kiểm tra th
 
 ## Quy ước artifact
 
-- `reports/eda_insights.md`: nhận xét phân tích dữ liệu EDA.
 - `reports/figures/eda/`: hình khám phá dữ liệu (01..07).
 - `reports/figures/classification/`: Confusion Matrix và hình so sánh độ đo test.
 - `reports/figures/clustering/`: Elbow, Silhouette và PCA.
