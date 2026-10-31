@@ -4,7 +4,7 @@
 
 | Đường dẫn | Vai trò | Dùng bởi |
 |---|---|---|
-| `data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv` | Dữ liệu Telco gốc | EDA, split classification, luật kết hợp |
+| `data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv` | Dữ liệu Telco gốc | EDA, split classification |
 | `data/interim/working_raw_7043.csv` | Input clustering 7.043 dòng, chưa scale | `src/clustering.py` |
 | `data/processed/Train_Data.csv` | Classification train đã xử lý | `src/experiments.py` |
 | `data/processed/Test_Data.csv` | Classification test đã xử lý | `src/experiments.py`, `src/predict.py` |
@@ -19,9 +19,7 @@
 | `src/experiments.py` | classification CSV, confusion matrices, model `.joblib` |
 | `src/predict.py` | CSV dự đoán từ model đã lưu |
 | `src/clustering.py` | clustering metrics, nhãn cụm, Elbow/Silhouette/PCA |
-| `src/association_rules.py` | CSV Apriori/FP-Growth, chart lift cơ bản |
 | `scripts/generate_report_figures.py` | classification comparison + cluster profile |
-| `scripts/run_association_extension.py` | toàn bộ artifact luật kết hợp dùng Word/PPT |
 
 ## Output cần dùng trong Word/PPT
 
@@ -48,17 +46,6 @@
 - `reports/figures/clustering/silhouette_compare.png`
 - `reports/figures/clustering/pca_kmeans_k4.png`
 - `reports/figures/clustering/12_cluster_profile.png`
-
-### Luật kết hợp
-
-- `reports/metrics/association_rules/algorithm_comparison.csv`
-- `reports/metrics/association_rules/apriori_churn_yes_rules.csv`
-- `reports/metrics/association_rules/fpgrowth_churn_yes_rules.csv`
-- `reports/metrics/association_rules/association_rules_churn_yes.csv`
-- `reports/figures/association_rules/01_association_workflow.png`
-- `reports/figures/association_rules/02_algorithm_comparison.png`
-- `reports/figures/association_rules/03_rules_support_confidence_lift.png`
-- `reports/figures/association_rules/04_top_rules_table.png`
 
 ## Không dùng làm input model
 

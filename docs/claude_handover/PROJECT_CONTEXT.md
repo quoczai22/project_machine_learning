@@ -3,27 +3,24 @@
 ## 1. Mục tiêu bài tập
 
 Đây là bài tập lớn môn Học máy của HUIT, dùng bộ dữ liệu **Telco Customer
-Churn** gồm 7.043 khách hàng và 21 cột. Nhóm phải thực hiện ba hướng phân tích
-bổ sung nhau:
+Churn** gồm 7.043 khách hàng và 21 cột. Phạm vi bám đúng yêu cầu BT01, gồm hai hướng phân tích bổ sung nhau:
 
 1. **Phân lớp:** dự đoán khách hàng có rời bỏ dịch vụ hay không (`Churn=Yes/No`).
 2. **Gom cụm:** phân khúc khách hàng không giám sát theo đặc trưng hành vi/dịch vụ.
-3. **Luật kết hợp:** tìm tổ hợp dịch vụ và bối cảnh xuất hiện cùng `Churn=Yes`.
 
-Phần trình bày/báo cáo cần có EDA, tiền xử lý, so sánh thuật toán, độ đo đánh
-giá, trực quan hóa, kết luận và hạn chế. Đây là bài tập học máy truyền thống;
+Phần trình bày/báo cáo cần có EDA (phân bố, tương quan), tiền xử lý (thiếu, mã
+hóa, chuẩn hóa), so sánh mỗi thuật toán với một thuật toán cùng loại, độ đo
+đánh giá (accuracy/precision/recall, silhouette), kết luận và hạn chế. Luật kết
+hợp không thuộc phạm vi đề nên đã bỏ khỏi code và báo cáo. Đây là bài tập học máy truyền thống;
 **không dùng Deep Learning**.
 
 ## 2. Ranh giới cần giữ đúng
 
-- Không khẳng định luật kết hợp là quan hệ nhân quả. Luật chỉ thể hiện liên hệ
-  trong dữ liệu.
 - Không dùng `customerID` làm feature cho bất kỳ model hoặc clustering nào.
 - `TotalCharges` phải dùng `pd.to_numeric(errors="coerce")`; giá trị không hợp
   lệ được impute median trong bước phù hợp.
 - Với classification, split phải xảy ra trước khi fit imputer/scaler/encoder để
   tránh data leakage.
-- Luật kết hợp không cần split Train/Test và không đánh giá bằng Accuracy/F1.
 - K-Means không bắt buộc số cụm chẵn/lẻ. Việc chọn `k=4` phải giải thích bằng
   Silhouette, Elbow và khả năng diễn giải phân khúc, không dựa vào tính chẵn/lẻ.
 
@@ -53,13 +50,6 @@ chỉ `fit` trên Train rồi `transform` Test. CSV đã encode/scale; do đó
 cột `customerID`, `tenure`, `MonthlyCharges`, `service_count`. `src.clustering`
 loại `customerID`/`Churn` và fit StandardScaler trong pipeline clustering.
 
-### Luật kết hợp
-
-Luật kết hợp đọc toàn bộ dữ liệu thô. `association_data.py` biến mỗi khách hàng
-thành một giao dịch Boolean, giữ item về dịch vụ/bối cảnh; `tenure` được chia
-`0-12 tháng`, `13-48 tháng`, `>48 tháng`; `MonthlyCharges` được chia thấp,
-trung bình, cao. Chỉ công bố luật có consequent đúng bằng `Churn=Yes`.
-
 ## 4. Pipeline và trách nhiệm module
 
 ```text
@@ -67,8 +57,7 @@ raw CSV
  ├─ EDA notebook → reports/figures/eda/
  ├─ prepare_classification_data → Train_Data/Test_Data + metadata
  │   └─ experiments → classification CSV + confusion matrices + .joblib models
- ├─ working_raw_7043 → clustering → metrics k=2..10 + Elbow/Silhouette/PCA/profile
- └─ association_rules → Apriori/FP-Growth CSV + rule figures
+ └─ working_raw_7043 → clustering → metrics k=2..10 + Elbow/Silhouette/PCA/profile
 ```
 
 | Thành phần | Vai trò |
@@ -81,11 +70,8 @@ raw CSV
 | `src/experiments.py` | Thực nghiệm cuối trên cặp Train/Test đã chốt, xuất metrics/CM/model. |
 | `src/predict.py` | Tải `.joblib`, kiểm tra schema bằng manifest, dự đoán CSV đã tiền xử lý. |
 | `src/clustering.py` | K-Means và Hierarchical, quét `k=2..10`, chọn `k=4`. |
-| `src/association_data.py` | Tạo ma trận giao dịch Boolean. |
-| `src/association_rules.py` | Apriori/FP-Growth, lọc consequent `Churn=Yes`. |
 | `scripts/generate_report_figures.py` | Sinh biểu đồ so sánh classification và profile cụm. |
-| `scripts/run_association_extension.py` | Chạy trọn pipeline luật kết hợp và ảnh báo cáo. |
-| `tests/` | Unit tests về tiền xử lý, leakage, classification, clustering, luật kết hợp và prediction. |
+| `tests/` | Unit tests về tiền xử lý, leakage, classification, clustering và prediction. |
 
 ## 5. EDA đã có
 
@@ -100,9 +86,8 @@ Các ảnh EDA nằm tại `reports/figures/eda/`:
 7. `07_churn_by_internet_and_techsupport.png`
 
 Notebook gồm 12 mục; mục 12 kiểm tra đủ 7 ảnh. Mục 8 (tenure) có thêm bảng tỷ
-lệ Churn theo `0-12 tháng`/`13-48 tháng`/`>48 tháng` (47,44%/23,64%/9,51%),
-cùng cách chia với `tenure_band` của luật kết hợp. Mục 11 (ảnh 07) cho thấy
-Fiber optic có tỷ lệ Churn 41,89%, làm nền cho luật kết hợp nổi bật.
+lệ Churn theo `0-12 tháng`/`13-48 tháng`/`>48 tháng` (47,44%/23,64%/9,51%).
+Mục 11 (ảnh 07) cho thấy Fiber optic có tỷ lệ Churn 41,89%.
 
 EDA có nhiệm vụ mô tả dữ liệu và định hướng feature/tiền xử lý. Nó không được
 trộn với script sinh biểu đồ kết quả model. Biểu đồ so sánh classification và
@@ -159,35 +144,9 @@ Artifact chính:
 - `reports/figures/clustering/12_cluster_profile.png`
 - `reports/metrics/clustering/cluster_summary_k4.csv`
 
-## 8. Kết quả luật kết hợp đã chốt
+## 8. Nghiệm thu và lệnh tái tạo
 
-Hai thuật toán chạy cùng dữ liệu giao dịch và ngưỡng:
-
-- `min_support=0.05`
-- `min_confidence=0.40`
-- `min_lift=1.0`
-- `max_len=3`
-
-| Algorithm | Frequent itemsets | Luật có Churn=Yes | Runtime hiện tại |
-|---|---:|---:|---:|
-| Apriori | 6.850 | 127 | khoảng 0.20 giây |
-| FP-Growth | 6.850 | 127 | khoảng 4.47 giây |
-
-Runtime phụ thuộc máy/môi trường, vì vậy chỉ diễn giải số frequent itemsets,
-số luật và các metric Support/Confidence/Lift là bằng chứng chính. Luật nổi bật:
-
-```text
-InternetService=Fiber optic + tenure=0-12 tháng → Churn=Yes
-Support 9,16% | Confidence 69,88% | Lift 2,63
-```
-
-Diễn giải đúng: trong dữ liệu, nhóm khách Fiber optic mới dùng dịch vụ xuất
-hiện Churn cao hơn baseline. Không được nói Fiber optic hoặc tenure ngắn gây
-ra Churn.
-
-## 9. Nghiệm thu và lệnh tái tạo
-
-Tại thời điểm bàn giao, full test suite đã chạy **21 passed**.
+Tại thời điểm bàn giao, full test suite đã chạy **15 passed** (sau khi bỏ test luật kết hợp).
 
 ```powershell
 python -m pip install -r requirements.txt
@@ -203,24 +162,21 @@ python -m src.clustering --data data/interim/working_raw_7043.csv --out reports 
 
 # Sinh ảnh tổng hợp ngoài EDA
 python scripts/generate_report_figures.py
-
-# Tái tạo luật kết hợp và ảnh kèm theo
-python scripts/run_association_extension.py
 ```
 
 Sau khi chạy lại, cần đối chiếu CSV metrics với ảnh/Word/PPT; không trộn ảnh
 cũ từ lượt chạy khác.
 
-## 10. Báo cáo, PPT và vai trò sáu thành viên
+## 9. Báo cáo, PPT và vai trò sáu thành viên
 
 - Báo cáo Word/PPT chỉ dùng artifact sinh từ `reports/` và CSV metrics đã chốt.
-- PPT đã có kết luận chung ba hướng: phân lớp dự đoán nguy cơ, gom cụm xác định
-  phân khúc, luật kết hợp tìm tổ hợp liên hệ với Churn.
+- PPT (bản v8.2) kết luận hai hướng: phân lớp dự đoán nguy cơ, gom cụm xác định
+  phân khúc.
 - Phân công học thuật: (1) Data & EDA; (2) preprocessing; (3) classification;
   (4) clustering; (5) evaluation/testing và tổng hợp trực quan; (6) báo cáo.
   Nhóm trưởng theo dõi tiến độ, nghiệm thu, chốt số liệu và sửa lỗi tích hợp.
 
-## 11. Tình trạng repository
+## 10. Tình trạng repository
 
 - Branch local hiện hành: `recovery/telco-project-cleanup`.
 - Project vừa được khôi phục từ worktree bị hỏng; một bản backup còn ở thư mục
@@ -229,7 +185,7 @@ cũ từ lượt chạy khác.
   backup trước khi người phụ trách kiểm tra và commit xong.
 - File build tạm như `.ppt_build*`, `.docx_render_*`, `.chart-data-*` bị ignore.
 
-## 12. Cách trợ lý khác nên hỗ trợ
+## 11. Cách trợ lý khác nên hỗ trợ
 
 Ưu tiên kiểm tra số liệu và đường dẫn trước khi đề xuất sửa. Không thay đổi
 thuật toán, dữ liệu, số liệu chốt, Word/PPT hoặc branch khi chưa được yêu cầu

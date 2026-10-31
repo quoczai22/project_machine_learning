@@ -26,8 +26,6 @@ Tài liệu này mô tả chi tiết cách tổ chức thư mục, luồng dữ 
 - `src/classification.py`: Khai báo và cấu hình các mô hình phân lớp (Logistic Regression, Random Forest), tối ưu siêu tham số bằng GridSearchCV (5-fold CV).
 - `src/experiments.py`: Script chạy thực nghiệm phân loại, ghi nhận log và xuất kết quả metrics, Confusion Matrix.
 - `src/clustering.py`: Thực hiện phân cụm khách hàng (K-Means, Hierarchical) với $k=2 \dots 10$, đánh giá qua Silhouette/Inertia và xuất kết quả $k=4$.
-- `src/association_data.py`: Chuẩn bị bảng giao dịch (transaction table) dạng One-hot boolean phục vụ bài toán Khai phá luật kết hợp.
-- `src/association_rules.py`: Khai phá luật kết hợp bằng thuật toán Apriori và FP-Growth, so sánh thời gian thực thi (runtime) và lọc các luật quan trọng liên hệ tới `Churn=Yes`.
 - `src/evaluator.py`: Tính toán các chỉ số đánh giá mô hình (Accuracy, Precision, Recall, F1-score, ROC-AUC).
 
 ### Sổ tay thực nghiệm (`notebooks/`)
@@ -39,8 +37,6 @@ Tài liệu này mô tả chi tiết cách tổ chức thư mục, luồng dữ 
 - `test_leakage.py`: Kiểm tra nghiêm ngặt không bị rò rỉ dữ liệu giữa tập Train và Test.
 - `test_classification.py`: Kiểm tra pipeline huấn luyện và dự đoán của mô hình phân lớp.
 - `test_clustering.py`: Kiểm tra pipeline phân cụm K-Means và Hierarchical.
-- `test_association_data.py`: Kiểm thử chuyển đổi dữ liệu giao dịch cho luật kết hợp.
-- `test_association_rules.py`: Kiểm thử thuật toán Apriori và FP-Growth.
 - `test_evaluator.py`: Kiểm tra độ chính xác của các hàm tính toán metric.
 
 ---
@@ -66,11 +62,6 @@ Tài liệu này mô tả chi tiết cách tổ chức thư mục, luồng dữ 
     - `elbow_kmeans.png`: Đồ thị Elbow phương pháp K-Means ($k=2 \dots 10$).
     - `silhouette_compare.png`: So sánh điểm Silhouette giữa K-Means và Hierarchical.
     - `pca_kmeans_k4.png`: Trực quan hóa 4 cụm khách hàng trên không gian 2D PCA.
-  - `reports/figures/association_rules/`:
-    - `algorithm_comparison.png`: Biểu đồ cột so sánh kết quả khai phá (frequent itemsets, rules) và thời gian thực thi (runtime) giữa Apriori và FP-Growth.
-    - `rules_quality_scatter.png`: Biểu đồ phân tán đánh giá chất lượng luật kết hợp theo Support (%), Confidence (%) và điểm Lift.
-    - `top_rules_lift_apriori.png`: Biểu đồ top luật có Lift cao nhất của Apriori.
-    - `top_rules_lift_fpgrowth.png`: Biểu đồ top luật có Lift cao nhất của FP-Growth.
 
 - **Bảng số liệu & Metrics (`reports/metrics/`)**:
   - `reports/metrics/classification/`:
@@ -80,11 +71,6 @@ Tài liệu này mô tả chi tiết cách tổ chức thư mục, luồng dữ 
     - `algorithm_comparison_k4.csv`: So sánh hiệu năng K-Means vs Hierarchical tại $k=4$.
     - `cluster_summary_k4.csv`: Thống kê đặc trưng trung bình của 4 phân khúc khách hàng.
     - `clustering_result_7043.csv`: Dữ liệu 7.043 khách hàng kèm nhãn cụm đã gán.
-  - `reports/metrics/association_rules/`:
-    - `algorithm_comparison.csv`: So sánh số itemsets, số luật và runtime giữa Apriori và FP-Growth.
-    - `apriori_churn_yes_rules.csv`: Bảng luật sinh bởi thuật toán Apriori.
-    - `fpgrowth_churn_yes_rules.csv`: Bảng luật sinh bởi thuật toán FP-Growth.
-    - `association_rules_churn_yes.csv`: Tổng hợp toàn bộ các luật kết hợp hướng tới Churn=Yes.
 
 ---
 

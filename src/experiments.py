@@ -173,7 +173,7 @@ def save_metrics_comparison_plot(df_results: pd.DataFrame, output_path: str) -> 
     display_metrics = ["Accuracy", "Precision", "Recall", "F1-score"]
 
     lr_row = df_results[df_results["Model"] == "Logistic Regression"]
-    rf_row = df_results[df_results["Model"] == "Random Forest"]
+    rf_row = df_results[df_results["Model"].str.startswith("Random Forest")]
 
     if lr_row.empty or rf_row.empty:
         return
