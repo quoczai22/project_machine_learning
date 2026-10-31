@@ -137,7 +137,7 @@ Bằng chứng nghiệm thu clustering và classification được kiểm tra th
 
 ## Các module chính
 
-Tất cả hàm công khai có docstring và type hints. Các mô hình dùng `random_state=42` để tái tạo kết quả. Dữ liệu phân lớp được chia Train/Test trước khi fit imputer, encoder và scaler để tránh rò rỉ dữ liệu.
+Các mô hình dùng `random_state=42` để tái tạo kết quả. Dữ liệu phân lớp được chia Train/Test trước khi fit imputer, encoder và scaler để tránh rò rỉ dữ liệu.
 
 | Module | Hàm chính | Vai trò |
 |---|---|---|
