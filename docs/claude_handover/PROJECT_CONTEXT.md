@@ -146,7 +146,7 @@ Artifact chính:
 
 ## 8. Nghiệm thu và lệnh tái tạo
 
-Tại thời điểm bàn giao, full test suite đã chạy **15 passed** (sau khi bỏ test luật kết hợp).
+Tại thời điểm bàn giao, full test suite đã chạy **16 passed** (sau khi bỏ test luật kết hợp, thêm test biểu đồ so sánh).
 
 ```powershell
 python -m pip install -r requirements.txt
