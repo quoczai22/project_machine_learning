@@ -37,6 +37,7 @@ telco-churn-project/
 │   └── metrics/
 │       ├── classification/          # CSV kết quả phân lớp
 │       └── clustering/              # CSV Silhouette, Inertia, cluster profile
+├── demo/                            # Demo web Streamlit: dự đoán Churn và phân khúc khách hàng
 ├── requirements.txt
 └── README.md
 ```
@@ -91,6 +92,22 @@ Clustering dùng một bộ input riêng và thống nhất quy trình: quét `k
 python -m src.clustering --data data/interim/working_raw_7043.csv --out reports --k 4
 python -m pytest tests/test_clustering.py -q
 ```
+
+## Chạy demo web
+
+Thư mục `demo/` có ứng dụng Streamlit gồm hai demo:
+
+1. **Dự đoán Churn**: nhập thông tin khách hàng hoặc lấy một khách thật từ tập Test; Random Forest (mô hình chính) hoặc Logistic Regression trả về xác suất rời bỏ.
+2. **Phân khúc khách hàng**: nhập tenure, cước tháng và các dịch vụ đang dùng; K-Means k = 4 xếp khách vào một trong bốn phân khúc, kèm biểu đồ và gợi ý chăm sóc.
+
+```bash
+cd demo
+python -m streamlit run app.py
+```
+
+Trên Windows có thể nhấp đúp `demo/chay_demo.bat`. Trình duyệt mở `http://localhost:8501`.
+
+Lần chạy đầu, `demo/build_artifacts.py` huấn luyện lại mô hình từ `data/raw/` theo đúng quy trình ở trên (split 80/20, chỉ fit trên Train; K-Means k = 4 trên ba đặc trưng đã chuẩn hóa) và dừng nếu số liệu lệch kết quả đã chốt. Mô hình được lưu vào `demo/artifacts/` (không đưa lên Git). Tỷ lệ Churn từng cụm ở demo 2 chỉ tính sau khi gom cụm để diễn giải, không dùng làm đặc trưng.
 
 ## Kết quả đã chốt
 
