@@ -30,7 +30,7 @@ Median `tenure` của nhóm Churn là **10 tháng**, trong khi nhóm không Chur
 
 Điều này cho thấy khách hàng mới sử dụng dịch vụ có xu hướng Churn cao hơn. Giai đoạn đầu của vòng đời khách hàng có thể là thời điểm cần tăng cường chăm sóc và các biện pháp giữ chân.
 
-Chia `tenure` theo cùng các khoảng dùng trong luật kết hợp: nhóm **0-12 tháng** (2.186 khách hàng) có tỷ lệ Churn **47,44%**, nhóm **13-48 tháng** **23,64%** và nhóm **>48 tháng** chỉ **9,51%**.
+Chia `tenure` thành ba khoảng: nhóm **0-12 tháng** (2.186 khách hàng) có tỷ lệ Churn **47,44%**, nhóm **13-48 tháng** **23,64%** và nhóm **>48 tháng** chỉ **9,51%**.
 
 ## 6. MonthlyCharges và Churn
 
@@ -52,7 +52,7 @@ Khách hàng dùng **Fiber optic** có tỷ lệ Churn **41,89%**, cao hơn **DS
 
 Nhóm **không đăng ký TechSupport** có tỷ lệ Churn **41,64%**, khoảng **2,7 lần** nhóm có đăng ký (**15,17%**); nhóm `No internet service` có tỷ lệ **7,40%**, trùng với nhóm không dùng Internet.
 
-Fiber optic và tenure 0-12 tháng cũng là hai item của luật kết hợp nổi bật với `Churn=Yes`. Các chênh lệch này chỉ là liên hệ quan sát được, **không chứng minh quan hệ nhân quả**.
+Các chênh lệch này chỉ là liên hệ quan sát được, **không chứng minh quan hệ nhân quả**.
 
 ## 9. Kết luận
 
