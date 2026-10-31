@@ -1,4 +1,4 @@
-# Prompt dán cho Claude
+# Tóm tắt giao việc
 
 ```text
 Bạn đang hỗ trợ một nhóm sinh viên hoàn thiện bài tập lớn môn Học máy của HUIT:
@@ -19,8 +19,8 @@ C:\Users\kienq\OneDrive - University Of Industry and Trade\Tài liệu\ChatGPT\M
 5) Sau khi nghiệm thu, chờ yêu cầu cụ thể tiếp theo của nhóm trưởng.
 
 Trước tiên, đọc các file sau trong repository:
-1) docs/claude_handover/PROJECT_CONTEXT.md
-2) docs/claude_handover/FILE_MAP.md
+1) docs/handover/PROJECT_CONTEXT.md
+2) docs/handover/FILE_MAP.md
 3) README.md
 
 Phạm vi bám đúng yêu cầu BT01: EDA (phân bố, tương quan), tiền xử lý (thiếu,
