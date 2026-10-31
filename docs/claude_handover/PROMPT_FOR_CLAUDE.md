@@ -47,7 +47,7 @@ Số liệu đã chốt:
   F1 0.6234. Chọn đây là model chính theo F1.
 - K-Means k=4: Silhouette 0.4212. K=2 đạt 0.4255 nhưng quá tổng quát; k=4
   gần mức đó và tạo bốn phân khúc dễ diễn giải. Hierarchical k=4 đạt 0.3457.
-- Full test suite đạt 15 passed (sau khi bỏ test luật kết hợp).
+- Full test suite đạt 16 passed (sau khi bỏ test luật kết hợp, thêm test biểu đồ so sánh).
 
 Khi trả lời:
 1) Luôn đối chiếu code, CSV metrics và ảnh trước khi nhận xét số liệu.
