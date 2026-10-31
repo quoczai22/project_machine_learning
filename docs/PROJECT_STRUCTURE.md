@@ -47,13 +47,14 @@ Tài liệu này mô tả chi tiết cách tổ chức thư mục, luồng dữ 
   - `reports/eda_insights.md`: Nhận xét và đúc kết chi tiết từ quá trình phân tích khám phá dữ liệu (EDA).
 
 - **Biểu đồ trực quan hóa (`reports/figures/`)**:
-  - `reports/figures/eda/`: 6 biểu đồ phân tích EDA:
+  - `reports/figures/eda/`: 7 biểu đồ phân tích EDA:
     - `01_churn_distribution.png`: Tỷ lệ Churn tổng thể (26.54% Churn).
     - `02_churn_by_contract.png`: Tỷ lệ Churn theo loại hợp đồng.
     - `03_churn_by_payment_method.png`: Tỷ lệ Churn theo phương thức thanh toán.
     - `04_tenure_distribution_by_churn.png`: Phân bố thời gian gắn bó (tenure).
     - `05_monthly_charges_by_churn.png`: Phân bố chi phí hàng tháng (MonthlyCharges).
     - `06_correlation_heatmap.png`: Ma trận tương quan giữa các biến số.
+    - `07_churn_by_internet_and_techsupport.png`: Tỷ lệ Churn theo InternetService và TechSupport.
   - `reports/figures/classification/`:
     - `cm_logistic_regression.png`: Ma trận nhầm lẫn của Logistic Regression.
     - `cm_random_forest_classifier.png`: Ma trận nhầm lẫn của Random Forest.

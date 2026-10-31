@@ -178,3 +178,16 @@ def test_final_confusion_matrices_match_classification_results():
         assert recall_score(y_test, test_predictions) == pytest.approx(
             row["Recall"], abs=5e-5
         )
+
+
+def test_metrics_comparison_plot_is_written_for_saved_results(tmp_path):
+    """Tên model trong CSV là "Random Forest Classifier"; biểu đồ vẫn phải được vẽ."""
+    from src.experiments import save_metrics_comparison_plot
+
+    results = pd.read_csv(Path("reports/metrics/classification/classification_results.csv"))
+    output_path = tmp_path / "test_metrics_comparison.png"
+
+    save_metrics_comparison_plot(results, str(output_path))
+
+    assert output_path.exists()
+    assert output_path.stat().st_size > 0
