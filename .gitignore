@@ -4,3 +4,4 @@ __pycache__/
 *.py[cod]
 logs/*.log
 classification_audit.log
+demo/artifacts/
