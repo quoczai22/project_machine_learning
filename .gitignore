@@ -1,7 +1,32 @@
+# Python environments, bytecode and test cache
 .venv/
-.pytest_cache/
+venv/
+env/
 __pycache__/
 *.py[cod]
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.egg-info/
+build/
+dist/
+
+# Jupyter runtime files
+.ipynb_checkpoints/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+demo/.streamlit/secrets.toml
+
+# Runtime artifacts created by the Streamlit demo
+demo/artifacts/
+
+# Logs and operating-system metadata
 logs/*.log
 classification_audit.log
-demo/artifacts/
+*.log
+.DS_Store
+Thumbs.db
