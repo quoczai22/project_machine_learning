@@ -17,7 +17,9 @@ project_machine_learning/
 ├── data/
 │   ├── raw/                         # CSV Telco gốc
 │   ├── interim/                     # Input 7.043 dòng cho clustering
-│   └── processed/                   # Train/Test đã tiền xử lý và metadata
+│   ├── processed/                   # Train/Test đã tiền xử lý và metadata
+│   ├── archive/                     # File bàn giao cũ, chỉ lưu đối chiếu
+│   └── README.md                    # Phân biệt dữ liệu chính thức và lưu trữ
 ├── notebooks/
 │   └── EDA.ipynb                    # EDA và tạo hình EDA
 ├── src/
@@ -65,6 +67,12 @@ python -m pip install -r requirements.txt
 python -m pytest
 ```
 
+Chạy notebook EDA khi cần tái tạo hoặc xem lại quá trình khám phá dữ liệu:
+
+```bash
+jupyter notebook notebooks/EDA.ipynb
+```
+
 ## Dữ liệu phân lớp (Classification) đã chốt
 
 Classification dùng cặp file đã tiền xử lý: `data/processed/Train_Data.csv` (5.634 dòng) và `data/processed/Test_Data.csv` (1.409 dòng). Hai file là một cặp split 80/20 đã cố định; `src/experiments.py` dùng trực tiếp cặp này và không split, scale hay one-hot encode lần nữa. GridSearchCV dùng `scoring="f1"`; các model dùng `random_state=42` và `class_weight="balanced"`.
@@ -78,6 +86,7 @@ python -m pytest tests/test_leakage.py -q
 ```
 
 Metadata tái tạo nằm tại `data/processed/classification_split_metadata.json`.
+Vai trò của từng tệp dữ liệu, gồm cả các tệp lưu đối chiếu không được code sử dụng, được mô tả trong [`data/README.md`](data/README.md).
 
 Luồng xử lý:
 
