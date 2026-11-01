@@ -15,6 +15,9 @@ dist/
 # Jupyter runtime files
 .ipynb_checkpoints/
 
+# Editor-specific local settings
+.vscode/
+
 # Local configuration and secrets
 .env
 .env.*
